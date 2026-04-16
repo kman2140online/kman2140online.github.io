@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>kman2140@nostr:~$</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0c0c;--bg2:#101010;--bg3:#141414;
+  --g:#39ff14;--g2:#00cc33;--g3:#003311;--g4:#001508;
+  --a:#ffb300;--a2:#cc8800;--a3:#251800;
+  --c:#00d4ff;--c2:#0099bb;--c3:#001620;
+  --m:#ff3aff;--m2:#990099;
+  --r:#ff4040;--w:#c8d8c8;
+  --dim:#284228;--dim2:#192819;--dim3:#111d11;
+  --gg:0 0 8px rgba(57,255,20,.45);
+  --ga:0 0 8px rgba(255,179,0,.45);
+  --gc:0 0 8px rgba(0,212,255,.35);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--g);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.5;display:flex;flex-direction:column;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);pointer-events:none;z-index:9990;}
+
+/* TMUX TOP */
+.tmux-top{height:20px;background:#080808;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;flex-shrink:0;user-select:none;}
+.tmux-tabs{display:flex;height:100%;}
+.tmux-tab{padding:0 11px;height:100%;display:flex;align-items:center;font-size:11px;border-right:1px solid #1a1a1a;color:#1e3e1e;white-space:nowrap;cursor:default;}
+.tmux-tab.active{background:var(--bg);color:var(--g);}
+.tn{color:#1a2e1a;margin-right:4px;}
+.tmux-tab.active .tn{color:var(--g2);}
+.tmux-host{margin-left:auto;padding:0 10px;color:#1a2a1a;font-size:10px;}
+
+/* BODY GRID */
+.tmux-body{flex:1;min-height:0;display:grid;grid-template-columns:210px 1fr 240px;gap:1px;background:#0a0a0a;overflow:hidden;}
+
+/* PANE */
+.pane{background:var(--bg);display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+.phdr{padding:2px 8px;background:#090909;border-bottom:1px solid #181818;font-size:10px;color:#1e3e1e;display:flex;align-items:center;gap:5px;flex-shrink:0;white-space:nowrap;overflow:hidden;}
+.phdr .hn{color:#285028;}
+.phdr .hp{color:#1a301a;overflow:hidden;text-overflow:ellipsis;}
+.phdr .hlv{margin-left:auto;color:var(--g2);font-size:9px;display:flex;align-items:center;gap:3px;flex-shrink:0;}
+.livdot{width:5px;height:5px;border-radius:50%;background:var(--g);box-shadow:var(--gg);animation:pulse 1.3s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.15;}}
+.scr{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px 9px 20px;}
+.scr::-webkit-scrollbar{width:2px;}
+.scr::-webkit-scrollbar-thumb{background:#1e301e;}
+
+/* MID PANE */
+.pane-mid{display:flex;flex-direction:column;}
+.mid-top{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;}
+.mid-bot{height:36%;max-height:36%;border-top:1px solid #181818;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+
+/* STATUS BAR */
+.sbar{height:21px;background:#080808;border-top:1px solid #181818;display:flex;align-items:center;flex-shrink:0;font-size:10px;user-select:none;}
+.ss{padding:0 8px;height:100%;display:flex;align-items:center;gap:4px;border-right:1px solid #181818;white-space:nowrap;}
+.ss:last-child{border:none;}
+.ss-pfx{background:#003311;color:var(--g);font-weight:700;padding:0 10px;}
+.ss-mode{color:var(--g2);background:#001408;}
+.ss-r{flex:1;}
+.ss-clk{margin-left:auto;color:#1e3e1e;border-left:1px solid #181818;padding:0 10px;}
+
+/* CONTENT */
+.pr{display:flex;align-items:baseline;gap:4px;flex-wrap:wrap;margin-top:10px;margin-bottom:1px;}
+.pr:first-child{margin-top:0;}
+.pu{color:var(--g);font-weight:700;}.pa{color:var(--dim);}
+.ph{color:var(--c);}.pp{color:var(--a);}.ps{color:var(--g);}
+.cmd{color:var(--w);}.cf{color:var(--dim);}.ca{color:var(--c);font-style:italic;}
+.out{padding-left:10px;border-left:1px solid var(--dim3);margin:3px 0 10px;}
+.cmt{color:#1a3020;font-size:10px;margin-bottom:5px;}
+
+/* AVATAR */
+.av-block{display:flex;gap:8px;align-items:center;padding:3px 0 6px;}
+.av-img{width:40px;height:40px;flex-shrink:0;border:1px solid var(--g3);image-rendering:pixelated;filter:saturate(1.1)contrast(1.05);}
+.av-info .name{color:var(--g);font-size:12px;font-weight:700;}
+.av-info .handle{color:var(--g2);font-size:10px;margin-top:0;}
+.av-info .org{color:var(--a2);font-size:10px;margin-top:1px;}
+.av-info .site{font-size:10px;margin-top:1px;}
+
+.sh{color:var(--dim);font-size:10px;text-transform:uppercase;letter-spacing:.1em;margin:10px 0 4px;border-bottom:1px solid var(--dim3);padding-bottom:2px;}
+.kv{display:flex;gap:6px;padding:2px 0;font-size:11px;}
+.kk{color:var(--c2);min-width:72px;flex-shrink:0;font-size:10px;}
+.vv{color:var(--w);}.vg{color:var(--g);}.va{color:var(--a);}.vc{color:var(--c);}.vd{color:var(--dim);font-size:10px;}
+
+/* RELAY ROWS */
+.rrow{display:flex;align-items:center;gap:5px;padding:2px 0;font-size:10px;}
+.rname{color:var(--c2);}
+.rlag{color:var(--dim);margin-left:auto;font-size:9px;}
+.rdot{width:5px;height:5px;border-radius:50%;flex-shrink:0;transition:background .3s;}
+
+/* NOTES */
+.note-stream{display:grid;gap:5px;}
+.note{background:var(--bg2);border:1px solid var(--dim3);border-left:2px solid var(--g3);padding:6px 9px;transition:border-left-color .12s,background .12s;}
+.note:hover{border-left-color:var(--g2);background:var(--bg3);}
+.note.fresh{border-left-color:var(--g);animation:fp .6s ease;}
+@keyframes fp{from{background:var(--g4);}to{background:var(--bg2);}}
+.note-ts{font-size:10px;color:var(--dim);margin-bottom:3px;display:flex;align-items:center;gap:5px;}
+.note-new{color:var(--g);font-size:9px;border:1px solid var(--g3);padding:0 3px;}
+.note-body{color:#6a8a6a;font-size:11px;line-height:1.55;word-break:break-word;}
+.note-body a{color:var(--c2);text-decoration:none;}
+.note-body a:hover{color:var(--c);}
+.note-img{max-width:100%;max-height:140px;object-fit:cover;margin-top:5px;border:1px solid var(--dim3);display:block;background:var(--dim3);}
+
+/* ARTICLES */
+.art{display:flex;align-items:baseline;gap:7px;padding:3px 0;border-bottom:1px solid var(--dim3);font-size:11px;}
+.art:last-child{border:none;}
+.art-name{color:var(--c);text-decoration:none;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.art-name:hover{color:#88f4ff;}
+.art-sz{color:var(--dim);font-size:10px;flex-shrink:0;}
+
+/* AVATARS GRID */
+.av-grid{display:flex;flex-wrap:wrap;gap:5px;margin-top:3px;}
+.av-thumb{width:40px;height:40px;border:1px solid var(--dim3);object-fit:cover;image-rendering:pixelated;cursor:pointer;transition:border-color .12s,transform .1s;}
+.av-thumb:hover{border-color:var(--g2);transform:scale(1.1);box-shadow:var(--gg);}
+
+/* REPOS */
+.repo-row{display:flex;align-items:baseline;gap:6px;padding:2px 0;border-bottom:1px solid var(--dim3);font-size:10px;}
+.repo-row:last-child{border:none;}
+.repo-name{color:var(--c2);text-decoration:none;}
+.repo-name:hover{color:var(--c);}
+.repo-lang{color:var(--a2);}
+.repo-star{color:var(--dim);}
+
+/* C21 CARDS */
+.c21-card{background:#050d05;border:1px solid var(--g3);border-radius:2px;padding:9px 11px;margin-bottom:7px;}
+.c21-title{color:var(--g);font-size:11px;font-weight:700;margin-bottom:3px;}
+.c21-title a{color:var(--g);text-decoration:none;border-bottom:1px solid var(--g3);}
+.c21-title a:hover{color:var(--g2);}
+.c21-desc{color:#4a6a4a;font-size:10px;line-height:1.6;margin-bottom:5px;}
+.c21-links{display:flex;gap:8px;flex-wrap:wrap;}
+.c21-link{color:var(--c2);font-size:10px;text-decoration:none;border-bottom:1px solid var(--c3);}
+.c21-link:hover{color:var(--c);}
+.c21-link.amber{color:var(--a2);border-color:var(--a3);}
+.c21-link.amber:hover{color:var(--a);}
+.c21-badge{display:inline-block;padding:1px 5px;font-size:9px;border:1px solid var(--g3);color:var(--g2);margin-right:4px;vertical-align:middle;}
+
+/* NPUB */
+.npub{background:var(--g4);border:1px solid #002a10;padding:7px 9px;font-size:11px;word-break:break-all;line-height:1.9;text-shadow:0 0 5px rgba(57,255,20,.2);}
+.n0{color:var(--a);font-weight:700;}.n1{color:#39ff14;}.n2{color:#00e5ff;}.n3{color:#aaff33;}
+.n4{color:#ff9900;}.n5{color:#ff55cc;}.n6{color:#00ffaa;}.n7{color:#ffee00;}
+
+/* BITCOIN / COINOS */
+.btc-wrap{background:#09080a;border:1px solid #201000;padding:8px 10px;position:relative;overflow:hidden;}
+.btc-wrap::before{content:'₿';position:absolute;right:8px;top:4px;font-size:48px;color:#120a00;line-height:1;pointer-events:none;}
+.btc-addr{color:var(--a);font-size:14px;font-weight:700;text-shadow:var(--ga);letter-spacing:.02em;}
+.btc-sub{color:#3a2800;font-size:10px;margin-top:2px;margin-bottom:8px;}
+.btc-grid{display:grid;grid-template-columns:76px 1fr;gap:3px 8px;margin-top:7px;font-size:10px;}
+.btc-k{color:var(--c2);}
+.btc-v{color:var(--w);}
+.btc-divider{border:none;border-top:1px solid #1a1000;margin:8px 0;}
+.pay-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+.zbtn{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border:1px solid var(--a3);background:#060400;color:var(--a2);font-size:10px;font-family:inherit;text-decoration:none;cursor:pointer;transition:all .12s;white-space:nowrap;}
+.zbtn:hover{border-color:var(--a);color:var(--a);box-shadow:var(--ga);}
+.zbtn.green{border-color:var(--g3);background:var(--g4);color:var(--g2);}
+.zbtn.green:hover{border-color:var(--g);color:var(--g);box-shadow:var(--gg);}
+.zbtn.cyan{border-color:var(--c3);background:#00060c;color:var(--c2);}
+.zbtn.cyan:hover{border-color:var(--c);color:var(--c);box-shadow:var(--gc);}
+.c21-donate{background:#06080a;border:1px solid #001a2a;padding:7px 9px;margin-top:6px;}
+.c21-donate-addr{color:var(--c);font-size:12px;font-weight:700;text-shadow:var(--gc);}
+.c21-donate-sub{color:#003040;font-size:10px;margin-top:2px;margin-bottom:7px;}
+
+/* TAGS */
+.tag{display:inline-block;padding:1px 5px;font-size:10px;border-radius:1px;border:1px solid;margin:2px 2px 2px 0;}
+.tg{color:var(--g2);border-color:var(--g3);background:var(--g4);}
+.ta{color:var(--a2);border-color:var(--a3);background:#060400;}
+.tc{color:var(--c2);border-color:var(--c3);background:#00060c;}
+.tm{color:var(--m2);border-color:#1a001a;background:#060006;}
+
+/* SKILLS */
+.pb{display:flex;align-items:center;gap:7px;padding:2px 0;}
+.pb-l{color:var(--dim);font-size:10px;width:130px;flex-shrink:0;}
+.pb-t{flex:1;height:2px;background:#181818;}
+.pb-f{height:100%;width:0;animation:grow 1.3s ease forwards;animation-delay:var(--d,0s);}
+.pbg{background:linear-gradient(90deg,#002a10,var(--g));}
+.pba{background:linear-gradient(90deg,#1a0e00,var(--a));}
+@keyframes grow{to{width:var(--w);}}
+.pb-v{color:var(--g2);font-size:10px;width:24px;text-align:right;}
+
+/* STACKER NEWS POSTS */
+.sn-post{display:flex;align-items:baseline;gap:6px;padding:3px 0;border-bottom:1px solid var(--dim3);font-size:10px;flex-wrap:wrap;}
+.sn-post:last-child{border:none;}
+.sn-title{color:var(--a2);text-decoration:none;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sn-title:hover{color:var(--a);}
+.sn-sats{color:var(--a);font-size:10px;flex-shrink:0;white-space:nowrap;}
+.sn-ter{color:var(--dim);font-size:9px;flex-shrink:0;}
+
+/* LINKS */
+a.lnk{color:var(--c);text-decoration:none;border-bottom:1px solid var(--c3);}
+a.lnk:hover{color:#88f4ff;border-color:var(--c);}
+a.lnk-g{color:var(--g2);text-decoration:none;border-bottom:1px solid var(--g3);}
+a.lnk-g:hover{color:var(--g);}
+a.lnk-a{color:var(--a2);text-decoration:none;border-bottom:1px solid var(--a3);}
+a.lnk-a:hover{color:var(--a);}
+
+/* NOSTR DM FORM */
+.dm-form{background:#08090a;border:1px solid #001a26;border-radius:2px;padding:10px 12px;}
+.dm-label{color:var(--c2);font-size:10px;display:block;margin-bottom:3px;}
+.dm-input{width:100%;background:#050607;border:1px solid #001e2a;color:var(--w);font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 8px;outline:none;transition:border-color .15s;resize:none;}
+.dm-input:focus{border-color:var(--c2);box-shadow:0 0 6px rgba(0,153,187,.3);}
+.dm-input::placeholder{color:#1a3040;}
+.dm-row{margin-bottom:7px;}
+.dm-send{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border:1px solid var(--c3);background:#00060c;color:var(--c2);font-size:10px;font-family:inherit;cursor:pointer;transition:all .15s;margin-top:2px;}
+.dm-send:hover{border-color:var(--c);color:var(--c);box-shadow:var(--gc);}
+.dm-send:disabled{opacity:.4;cursor:default;}
+.dm-status{font-size:10px;margin-top:6px;padding:4px 8px;display:none;}
+.dm-status.ok{color:var(--g2);background:var(--g4);border:1px solid var(--g3);}
+.dm-status.err{color:var(--r);background:#0a0000;border:1px solid #2a0000;}
+.dm-status.sending{color:var(--c2);background:var(--c3);}
+.dm-note{font-size:9px;color:var(--dim);margin-top:6px;line-height:1.5;}
+
+/* NOT-ON LIST */
+.no-list{font-size:10px;color:#1e2a1e;line-height:1.8;}
+.no-list .x{color:#2a1a1a;}
+
+/* MISC */
+.cur{display:inline-block;width:7px;height:12px;background:var(--g);vertical-align:middle;animation:cur 1s step-end infinite;box-shadow:0 0 5px var(--g);}
+@keyframes cur{0%,100%{opacity:1;}50%{opacity:0;}}
+.skel{background:linear-gradient(90deg,#111 25%,#1a281a 50%,#111 75%);background-size:200%;animation:sk 1.4s infinite;height:10px;margin:3px 0;border-radius:1px;}
+@keyframes sk{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+.err{color:var(--r);font-size:10px;}
+
+@media(max-width:760px){
+  /* ── RESET desktop layout ── */
+  html,body{height:100%;overflow:hidden;}
+  body{font-size:13px;}
+
+  /* hide desktop chrome */
+  .tmux-top{display:none;}
+  .tmux-body{display:block;height:100%;overflow:hidden;background:var(--bg);}
+  .sbar{display:none;}
+
+  /* hide desktop panes */
+  .pane,.pane-mid{display:none !important;}
+
+  /* ── MOBILE SHELL ── */
+  .m-shell{display:flex;flex-direction:column;height:100%;}
+  .m-topbar{
+    height:38px;background:#080808;border-bottom:1px solid #1a1a1a;
+    display:flex;align-items:center;padding:0 14px;
+    flex-shrink:0;user-select:none;gap:8px;
+  }
+  .m-topbar-title{color:var(--g);font-size:12px;font-weight:700;}
+  .m-topbar-sub{color:var(--dim);font-size:10px;}
+  .m-livdot{width:6px;height:6px;border-radius:50%;background:var(--g);box-shadow:var(--gg);animation:pulse 1.3s ease-in-out infinite;margin-left:auto;}
+  .m-nc{color:var(--g2);font-size:10px;}
+
+  /* tab content panels */
+  .m-tabs{flex:1;min-height:0;overflow:hidden;position:relative;}
+  .m-tab{
+    position:absolute;inset:0;
+    overflow-y:auto;overflow-x:hidden;
+    padding:12px 14px 80px;
+    display:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  .m-tab.active{display:block;}
+  .m-tab::-webkit-scrollbar{display:none;}
+
+  /* bottom nav */
+  .m-nav{
+    height:52px;background:#080808;border-top:1px solid #1a1a1a;
+    display:flex;align-items:stretch;
+    flex-shrink:0;
+  }
+  .m-nav-btn{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:2px;border:none;background:transparent;
+    color:var(--dim);font-family:'JetBrains Mono',monospace;font-size:9px;
+    cursor:pointer;border-right:1px solid #1a1a1a;
+    transition:color .15s,background .15s;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .m-nav-btn:last-child{border-right:none;}
+  .m-nav-btn.active{color:var(--g);background:#0a0f0a;}
+  .m-nav-btn .m-nav-icon{font-size:16px;line-height:1;}
+  .m-nav-btn .m-nav-label{font-size:8px;letter-spacing:.04em;}
+
+  /* mobile section headings */
+  .m-sh{color:var(--dim);font-size:10px;text-transform:uppercase;letter-spacing:.12em;margin:14px 0 6px;border-bottom:1px solid var(--dim3);padding-bottom:3px;}
+  .m-sh:first-child{margin-top:0;}
+
+  /* mobile prompt line */
+  .m-pr{display:flex;align-items:baseline;gap:4px;flex-wrap:wrap;margin:10px 0 2px;font-size:11px;}
+  .m-pr:first-child{margin-top:0;}
+  .m-out{padding-left:10px;border-left:1px solid var(--dim3);margin-bottom:10px;}
+
+  /* mobile note */
+  .note{padding:8px 10px;margin-bottom:5px;}
+  .note-body{font-size:12px;}
+  .note-ts{font-size:10px;}
+
+  /* mobile btc buttons — larger touch targets */
+  .pay-row{gap:6px;}
+  .zbtn{padding:6px 12px;font-size:11px;}
+
+  /* mobile dm form */
+  .dm-input{font-size:13px;padding:7px 10px;}
+  .dm-send{padding:7px 16px;font-size:11px;}
+
+  /* mobile sn posts */
+  .sn-post{padding:5px 0;}
+  .sn-title{font-size:11px;white-space:normal;overflow:visible;text-overflow:clip;}
+  .sn-sats{font-size:11px;}
+}
+
+/* ── MOBILE ONLY elements hidden on desktop ── */
+.m-shell,.m-topbar,.m-tabs,.m-tab,.m-nav,.m-nav-btn,.m-sh,.m-pr,.m-out{display:none;}
+@media(max-width:760px){
+  .m-shell{display:flex;}
+}
+</style>
+<link rel="icon" type="image/png" href="data:image/png;base64,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">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!--  MOBILE SHELL (hidden on desktop)              -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="m-shell">
+  <!-- mobile top bar -->
+  <div class="m-topbar">
+    <span class="m-topbar-title">kman2140</span>
+    <span class="m-topbar-sub">@nostr</span>
+    <span class="m-livdot" id="m-livdot"></span>
+    <span class="m-nc" id="m-nc"></span>
+  </div>
+
+  <!-- tab content area -->
+  <div class="m-tabs">
+
+    <!-- TAB 1: profile -->
+    <div class="m-tab active" id="m-tab-0">
+
+      <div class="m-sh">whoami</div>
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
+        <img src="https://github.com/kdnolan/kdnolan.github.io/blob/master/avatars/lasereyes2.png?raw=true"
+          style="width:52px;height:52px;border:1px solid var(--g3);image-rendering:pixelated;flex-shrink:0;"
+          onerror="this.src='https://avatars.githubusercontent.com/u/4064893?v=4'" alt="kman2140">
+        <div>
+          <div style="color:var(--g);font-size:14px;font-weight:700;">kman2140</div>
+          <div style="font-size:10px;margin-top:2px;"><a href="https://consensus21.school" target="_blank" style="color:var(--a2);text-decoration:none;">Consensus21.School</a></div>
+        </div>
+      </div>
+
+      <div class="kv"><span class="kk">github</span><a class="lnk" href="https://github.com/kdnolan" target="_blank" style="font-size:11px;">kdnolan</a></div>
+      <div class="kv"><span class="kk">nostr</span><a class="lnk-g" href="https://primal.net/kman2140" target="_blank" style="font-size:11px;">kman2140</a></div>
+      <div class="kv"><span class="kk">nip05</span><span class="vd">kman2140@stacker.news</span></div>
+      <div class="kv"><span class="kk">stacker.news</span><a class="lnk-a" href="https://stacker.news/kman2140/all" target="_blank" style="font-size:11px;">kman2140 ⚡</a></div>
+      <div class="kv"><span class="kk">location</span><span class="vv">🇦🇺 Australia</span></div>
+
+      <div class="m-sh">stacker.news</div>
+      <div class="kv"><span class="kk">sats stacked</span><span style="color:var(--a);font-weight:700;">30,087 ⚡</span></div>
+      <div class="kv"><span class="kk">items</span><span class="vv">336</span></div>
+      <div class="kv"><span class="kk">since</span><a class="lnk" href="https://stacker.news/items/68683" target="_blank" style="font-size:11px;">#68683</a></div>
+      <div class="kv"><span class="kk">territories</span><span class="vd">~Education · ~bitcoin</span></div>
+
+      <div class="m-sh">about</div>
+      <p style="font-size:12px;color:#5a7a5a;line-height:1.7;margin-bottom:10px;">
+        Teaching Bitcoin in schools since <span style="color:var(--a);">2013</span>.
+        World's first physical Bitcoin school <span style="color:var(--a);">2014</span>.
+        Victoria's first CoderDojo. Australia's first Immersive Education Club.
+        Learning Programs Director — <a class="lnk" href="https://www.digitalplayhouse.org.au" target="_blank">Digital Playhouse Foundation</a>.
+        STEM Wizard — Boneo Primary. Featured: <a class="lnk" href="https://www.edutopia.org/blog/australia-school-designed-excite-and-engage-suzie-boss?qt-edu_blogs_popular_sidebar=2" target="_blank">George Lucas Foundation</a>, Bitcoin.com, <a class="lnk" href="https://bitnewsbot.com/new-kids-on-the-blockchain/" target="_blank">The Age</a>.
+        Educator Hotlist <a class="lnk-a" href="https://www.theeducatoronline.com/k12/rankings/hot-list-2019/kieran-nolan-education-technologist-wooranna-park-primary-school/265327" target="_blank">2019</a> &amp; <a class="lnk-a" href="https://www.theeducatoronline.com/k12/rankings/hot-list-2020/kieran-nolan-wooranna-park-primary-school/272708" target="_blank">2020</a>.
+      </p>
+
+      <div class="m-sh">projects</div>
+      <div class="kv"><span class="kk">school</span><a class="lnk-a" href="https://consensus21.school" target="_blank" style="font-size:11px;">consensus21.school</a></div>
+      <div class="kv"><span class="kk">opsec</span><a class="lnk" href="https://opsecacademy.org" target="_blank" style="font-size:11px;">opsecacademy.org</a></div>
+      <div class="kv"><span class="kk">foundation</span><a class="lnk" href="https://www.digitalplayhouse.org.au" target="_blank" style="font-size:11px;">digitalplayhouse.org.au</a></div>
+      <div class="kv"><span class="kk">~Education</span><a class="lnk-a" href="https://stacker.news/~Education" target="_blank" style="font-size:11px;">stacker.news/~Education</a></div>
+      <div class="kv"><span class="kk">fountain.fm</span><a href="https://www.fountain.fm/kman2140" target="_blank" style="color:#aa66ff;font-size:11px;text-decoration:none;">fountain.fm/kman2140</a></div>
+
+      <div class="m-sh">credentials</div>
+      <div style="font-size:11px;color:#3a5a3a;line-height:2;">
+        B. Computer Science<br>
+        Adv. Diploma Cyber Security<br>
+        Adv. Diploma Applied Blockchain<br>
+        Diploma in IT<br>
+        Teaching TAE40116<br>
+        Google Apps for Education<br>
+        Cisco CCNA<br>
+        Cisco CCNP<br>
+        Fortinet NSE
+      </div>
+
+      <div class="m-sh">relays (8)</div>
+      <div style="font-size:10px;color:var(--dim);line-height:1.9;">
+        <div class="rrow"><span class="rdot" id="m-r0" style="background:#1e2e1e;"></span><span class="rname">relay.damus.io</span><span class="rlag" id="m-r0l">—</span></div>
+        <div class="rrow"><span class="rdot" id="m-r1" style="background:#1e2e1e;"></span><span class="rname">nos.lol</span><span class="rlag" id="m-r1l">—</span></div>
+        <div class="rrow"><span class="rdot" id="m-r2" style="background:#1e2e1e;"></span><span class="rname">wot.utxo.one</span></div>
+        <div class="rrow"><span class="rdot" id="m-r3" style="background:#1e2e1e;"></span><span class="rname">nostr.wine</span></div>
+        <div class="rrow"><span class="rdot" id="m-r4" style="background:#1e2e1e;"></span><span class="rname">relay.nostr.band</span></div>
+        <div class="rrow"><span class="rdot" id="m-r5" style="background:#1e2e1e;"></span><span class="rname">relay.fountain.fm</span></div>
+        <div class="rrow"><span class="rdot" id="m-r6" style="background:#1e2e1e;"></span><span class="rname">nostr-pub.wellorder.net</span></div>
+        <div class="rrow"><span class="rdot" id="m-r7" style="background:#1e2e1e;"></span><span class="rname">relay.nostr.wirednet.jp</span></div>
+      </div>
+      <div style="margin-top:4px;font-size:10px;color:var(--dim);">recv: <span id="m-count" style="color:var(--g2);">0</span></div>
+
+    </div>
+
+    <!-- TAB 2: nostr live feed -->
+    <div class="m-tab" id="m-tab-1">
+      <div class="m-sh" style="display:flex;align-items:center;gap:6px;margin-top:0;">
+        nostr live feed
+        <span style="width:6px;height:6px;border-radius:50%;background:var(--g);box-shadow:var(--gg);animation:pulse 1.3s ease-in-out infinite;display:inline-block;"></span>
+      </div>
+      <div style="font-size:10px;color:var(--dim);margin-bottom:10px;"># kind:1 · 8 relays · WebSocket</div>
+      <div class="note-stream" id="m-note-stream">
+        <div class="skel"></div><div class="skel" style="width:82%"></div>
+        <div class="skel" style="width:68%"></div><div class="skel"></div>
+      </div>
+      <div style="margin-top:10px;font-size:11px;">
+        <a class="lnk" href="https://primal.net/kman2140" target="_blank">→ primal.net/kman2140</a>
+        &nbsp;·&nbsp;
+        <a class="lnk" href="https://nosta.me/npub1cyla8qgt9gv8y6ydv8s2prt89h8afc0sr2kaz64ryjmlpdrzxm4qwlh53q" target="_blank">nosta.me</a>
+      </div>
+    </div>
+
+    <!-- TAB 3: bitcoin + pay -->
+    <div class="m-tab" id="m-tab-2">
+
+      <div class="m-sh" style="margin-top:0;">public key</div>
+      <div class="npub" style="font-size:11px;">
+        <a href="https://primal.net/kman2140" target="_blank" style="text-decoration:none;">
+          <span class="n0">npub1</span><span class="n1">cyla8</span><span class="n2">qgt9g</span><span class="n3">v8y6y</span><span class="n4">dv8s2</span><span class="n5">prt89</span><span class="n6">h8afc</span><span class="n7">0sr2k</span><span class="n1">az64r</span><span class="n2">yjmlp</span><span class="n3">drzxm</span><span class="n4">4qwlh</span><span class="n1">53q</span>
+        </a>
+      </div>
+
+      <div class="m-sh">bitcoin · lightning</div>
+      <div class="btc-wrap">
+        <div style="color:#2a1800;font-size:10px;margin-bottom:4px;"><a class="lnk-a" href="https://coinos.io/kdnolan/receive" target="_blank">coinos.io/kdnolan/receive</a></div>
+        <div class="btc-addr">⚡ kdnolan@coinos.io</div>
+        <div class="btc-sub">LUD-16 · NIP-57 zaps · ~0 fees</div>
+        <div class="btc-grid" style="margin-top:8px;">
+          <span class="btc-k">zaps (nostr)</span><span style="color:var(--g2);">NIP-57 ✔</span>
+          <span class="btc-k">sn address</span><span class="btc-v">kman2140@stacker.news</span>
+          <span class="btc-k">revolut</span><a class="lnk-a" href="https://revolut.me/kieranvmuk" target="_blank" style="font-size:11px;">revolut.me/kieranvmuk</a>
+        </div>
+        <hr class="btc-divider">
+        <div class="pay-row">
+          <a class="zbtn" href="https://coinos.io/kdnolan/receive" target="_blank">⚡ open coinos</a>
+          <a class="zbtn" href="lightning:kdnolan@coinos.io">⚡ pay</a>
+          <a class="zbtn green" href="https://primal.net/kman2140" target="_blank">zap nostr</a>
+          <a class="zbtn cyan" href="https://stacker.news/kman2140/all" target="_blank">zap SN ⚡</a>
+          <a class="zbtn" href="https://revolut.me/kieranvmuk" target="_blank">revolut</a>
+        </div>
+      </div>
+
+      <div class="m-sh">donate · consensus21</div>
+      <div class="c21-donate">
+        <div style="color:#003040;font-size:10px;margin-bottom:4px;"># DGR tax-deductible AUS · ABN 14 650 828 381</div>
+        <div class="c21-donate-addr">⚡ CONSENSUS21@coinos.io</div>
+        <div class="pay-row" style="margin-top:8px;">
+          <a class="zbtn cyan" href="https://coinos.io/CONSENSUS21/receive" target="_blank">⚡ donate bitcoin</a>
+          <a class="zbtn cyan" href="lightning:CONSENSUS21@coinos.io">open wallet</a>
+          <a class="zbtn" href="https://www.acnc.gov.au/charity/charities/51dfc341-a5cd-eb11-8235-002248103324/profile" target="_blank">ACNC ↗</a>
+        </div>
+      </div>
+
+      <div class="m-sh">send nostr DM</div>
+      <div class="dm-form">
+        <div style="color:#003040;font-size:10px;margin-bottom:8px;"># NIP-04 encrypted DM · requires Nostr extension</div>
+        <div class="dm-row">
+          <label class="dm-label">your npub or name (optional)</label>
+          <input class="dm-input" id="m-dm-from" type="text" placeholder="npub1… or leave blank" autocomplete="off">
+        </div>
+        <div class="dm-row">
+          <label class="dm-label">message</label>
+          <textarea class="dm-input" id="m-dm-msg" rows="4" placeholder="type your message…"></textarea>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <button class="dm-send" id="m-dm-btn" onclick="sendNostrDMFrom('m-dm-from','m-dm-msg','m-dm-btn','m-dm-status')">📡 send encrypted DM</button>
+          <a class="zbtn cyan" href="https://primal.net/kman2140" target="_blank">primal.net ↗</a>
+        </div>
+        <div class="dm-status" id="m-dm-status"></div>
+        <div class="dm-note">No extension? DM via <a class="lnk" href="https://primal.net/kman2140" target="_blank">primal.net</a> · <a class="lnk" href="https://stacker.news/kman2140/all" target="_blank">stacker.news</a></div>
+      </div>
+
+    </div>
+
+    <!-- TAB 4: consensus21 + SN posts -->
+    <div class="m-tab" id="m-tab-3">
+
+      <div class="m-sh" style="margin-top:0;">consensus21.school</div>
+      <div style="color:var(--g);font-size:13px;font-weight:700;margin-bottom:6px;">
+        <a class="lnk-g" href="https://consensus21.school" target="_blank">Consensus21.School</a>
+        <span class="c21-badge">open-source</span>
+        <span class="c21-badge" style="color:var(--a2);border-color:var(--a3);">DGR</span>
+      </div>
+      <p style="font-size:11px;color:#4a6a4a;line-height:1.7;margin-bottom:10px;">Open-source educational protocol removing hierarchies and tuition debt. Self-directed, problem-based learning. Ages 5–21. Auspiced by <a class="lnk" href="https://www.digitalplayhouse.org.au" target="_blank">Digital Playhouse Foundation</a>.</p>
+
+      <div class="c21-card">
+        <div class="c21-title"><a href="https://stacker.news/consensus21/all" target="_blank">📰 C21 News</a></div>
+        <div class="c21-desc">Updates via Stacker News and Nostr.</div>
+        <div class="c21-links">
+          <a class="c21-link" href="https://stacker.news/consensus21/all" target="_blank">Stacker News</a>
+          <a class="c21-link" href="https://primal.net/p/nprofile1qqstk8yx8gkptsf3k3y5u7sgrjwv24h2h4hzfj6gdrdwx79u99fu87ccjdc2x" target="_blank">Nostr</a>
+          <a class="c21-link" href="https://stacker.news/~education/rss" target="_blank">RSS</a>
+        </div>
+      </div>
+      <div class="c21-card">
+        <div class="c21-title"><a href="https://consensus21.school/whitepaper.html" target="_blank">📄 White Paper</a></div>
+        <div class="c21-desc">Decentralised education protocol — eliminating standardised testing and tuition debt.</div>
+        <div class="c21-links">
+          <a class="c21-link" href="https://consensus21.school/whitepaper.html" target="_blank">Read</a>
+          <a class="c21-link" href="https://github.com/consensus21school/consensus21school.github.io/blob/main/whitepaper.md" target="_blank">GitHub</a>
+        </div>
+      </div>
+      <div class="c21-card">
+        <div class="c21-title"><a href="https://v4v.consensus21.school/" target="_blank">⚡ V4V Lessons</a></div>
+        <div class="c21-desc">Value for Value — community lessons with embedded Lightning addresses.</div>
+        <div class="c21-links">
+          <a class="c21-link" href="https://v4v.consensus21.school/" target="_blank">V4V Lessons</a>
+          <a class="c21-link" href="https://stacker.news/items/260178" target="_blank">V4V info</a>
+        </div>
+      </div>
+      <div class="c21-card">
+        <div class="c21-title"><a href="https://stacker.news/~Education" target="_blank">📚 ~Education Territory</a></div>
+        <div class="c21-desc">3M sats DPF Learner Fund contributed to launch ~Education on Stacker News.</div>
+        <div class="c21-links">
+          <a class="c21-link" href="https://stacker.news/~Education" target="_blank">~Education</a>
+          <a class="c21-link" href="https://stacker.news/~education/rss" target="_blank">RSS</a>
+        </div>
+      </div>
+      <div class="c21-card">
+        <div class="c21-title"><a href="https://bitcoinerjobs.com/" target="_blank">💼 Jobs</a></div>
+        <div class="c21-desc">Roles listed on Bitcoiner Jobs and Stacker News Jobs.</div>
+        <div class="c21-links">
+          <a class="c21-link" href="https://bitcoinerjobs.com/" target="_blank">Bitcoiner Jobs</a>
+          <a class="c21-link" href="https://stacker.news/~jobs" target="_blank">~Jobs SN</a>
+        </div>
+      </div>
+
+      <div class="m-sh">top stacker.news posts</div>
+      <div style="display:grid;gap:5px;">
+        <div class="sn-post"><a class="sn-title" href="https://stacker.news/items/1269242" target="_blank">HackerSpace: Students Take on Bitcoin and Minecraft Challenge</a><span class="sn-sats">1,678 ⚡</span></div>
+        <div class="sn-post"><a class="sn-title" href="https://stacker.news/items/933152" target="_blank">Building a Physical Bitcoin School! - Consensus21.School</a><span class="sn-sats">323 ⚡</span></div>
+        <div class="sn-post"><a class="sn-title" href="https://stacker.news/items/981399" target="_blank">AI schools making legacy school obsolete.</a><span class="sn-sats">298 ⚡</span></div>
+        <div class="sn-post"><a class="sn-title" href="https://stacker.news/items/944635" target="_blank">Raising the Bar for Public Office: Proving Intelligence Through Asymmetric Keys</a><span class="sn-sats">138 ⚡</span></div>
+        <div class="sn-post"><a class="sn-title" href="https://stacker.news/items/1092484" target="_blank">The Genius Engineering Behind Bitcoin's Design</a><span class="sn-sats">40 ⚡</span></div>
+        <div class="sn-post"><a class="sn-title" href="https://stacker.news/items/994262" target="_blank">The Ultimate Bitcoin Argument</a><span class="sn-sats">40 ⚡</span></div>
+      </div>
+      <div style="margin-top:8px;font-size:11px;">
+        <a class="lnk-a" href="https://stacker.news/kman2140/all" target="_blank">→ all 336 items</a>
+      </div>
+
+      <div class="m-sh">privacy</div>
+      <div style="font-size:11px;color:#3a5a3a;line-height:1.9;">
+        Exclusively on <span style="color:var(--g2);">Nostr</span>. Gmail compromised — Protonmail or Nostr DM.<br>
+        <a class="lnk" href="https://www.howtogeek.com/how-to-switch-from-google-to-proton/" target="_blank">→ switch Google → Proton</a><br>
+        <a class="lnk" href="https://haveibeenpwned.com/" target="_blank">→ HaveIBeenPwned</a><br>
+        <a class="lnk" href="https://nostr.how/en/get-started" target="_blank">→ get started with Nostr</a><br>
+        <a class="lnk" href="https://www.gnu.org/licenses/gpl-3.0.en.html" target="_blank">→ GPLv3 Copyleft</a>
+      </div>
+      <div class="no-list" style="margin-top:6px;">NOT on: <span class="x">Facebook☠</span> <span class="x">Instagram☠</span> <span class="x">Twitter☠</span> <span class="x">LinkedIn☠</span> <span class="x">TikTok☠</span> <span class="x">Discord☠</span> <span class="x">WhatsApp☠</span></div>
+
+    </div>
+
+  </div><!-- /m-tabs -->
+
+  <!-- mobile bottom nav -->
+  <nav class="m-nav">
+    <button class="m-nav-btn active" onclick="mTab(0,this)">
+      <span class="m-nav-icon">👤</span>
+      <span class="m-nav-label">profile</span>
+    </button>
+    <button class="m-nav-btn" onclick="mTab(1,this)">
+      <span class="m-nav-icon">📡</span>
+      <span class="m-nav-label">nostr</span>
+    </button>
+    <button class="m-nav-btn" onclick="mTab(2,this)">
+      <span class="m-nav-icon">⚡</span>
+      <span class="m-nav-label">bitcoin</span>
+    </button>
+    <button class="m-nav-btn" onclick="mTab(3,this)">
+      <span class="m-nav-icon">🏫</span>
+      <span class="m-nav-label">c21</span>
+    </button>
+  </nav>
+
+</div><!-- /m-shell -->
+
+<!-- TMUX TOP -->
+<div class="tmux-top">
+  <div class="tmux-tabs">
+    <div class="tmux-tab active"><span class="tn">1</span>profile</div>
+    <div class="tmux-tab"><span class="tn">2</span>nostr-live</div>
+    <div class="tmux-tab"><span class="tn">3</span>consensus21</div>
+    <div class="tmux-tab"><span class="tn">4</span>bitcoin+links</div>
+  </div>
+  <div class="tmux-host">kman2140@nostr — 3 panes · 8 relays</div>
+</div>
+
+<div class="tmux-body">
+
+<!-- LEFT PANE -->
+<div class="pane">
+  <div class="phdr"><span class="hn">kman2140</span><span style="color:#1a2e1a;">@nostr</span><span class="hp">:~ $ whoami</span></div>
+  <div class="scr">
+
+    <div class="av-block">
+      <img class="av-img" src="https://github.com/kdnolan/kdnolan.github.io/blob/master/avatars/lasereyes2.png?raw=true" alt="kman2140" onerror="this.src='https://avatars.githubusercontent.com/u/4064893?v=4'">
+      <div class="av-info">
+        <div class="name">kman2140</div>
+        <div class="org"><a class="lnk-a" href="https://consensus21.school" target="_blank">Consensus21.School</a></div>
+      </div>
+    </div>
+
+    <div class="sh">identity</div>
+    <div class="kv"><span class="kk">github</span><a class="lnk" href="https://github.com/kdnolan" target="_blank" style="font-size:10px;">kdnolan</a></div>
+    <div class="kv"><span class="kk">nostr</span><a class="lnk-g" href="https://primal.net/kman2140" target="_blank" style="font-size:10px;">kman2140</a></div>
+    <div class="kv"><span class="kk">nip05</span><span class="vd">kman2140@stacker.news</span></div>
+    <div class="kv"><span class="kk">stacker.news</span><a class="lnk-a" href="https://stacker.news/kman2140/all" target="_blank" style="font-size:10px;">kman2140 ⚡</a></div>
+    <div class="kv"><span class="kk">location</span><span class="vv">🇦🇺 Australia</span></div>
+
+    <!-- Nostr DM form + Sign in with Nostr -->
+    <div class="pr">
+      <span class="pu">kman2140</span><span class="pa">@</span><span class="ph">nostr</span><span class="pa">:</span><span class="ps">~$</span>
+      <span class="cmd">nostr-cli dm <span class="cf">--to</span> <span class="ca">$PUBKEY</span></span>
+    </div>
+    <div class="out">
+      <div class="dm-form">
+        <div style="margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #001e2a;">
+          <div style="color:#003040;font-size:10px;margin-bottom:6px;"># sign in with nostr extension</div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <button class="dm-send" id="nostr-signin-btn" onclick="signInWithNostr()" style="border-color:#003344;background:#00060c;color:var(--c2);">
+              🔑 sign in with nostr
+            </button>
+            <div id="nostr-identity" style="font-size:10px;color:var(--dim);">no extension detected</div>
+          </div>
+        </div>
+        <div style="color:#003040;font-size:10px;margin-bottom:8px;"># NIP-04 encrypted DM → kman2140<br># requires a Nostr browser extension (nos2x, Alby, Nostore)</div>
+        <div class="dm-row">
+          <label class="dm-label">your npub or name (optional)</label>
+          <input class="dm-input" id="dm-from" type="text" placeholder="npub1… or leave blank" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="dm-row">
+          <label class="dm-label">message</label>
+          <textarea class="dm-input" id="dm-msg" rows="3" placeholder="type your message…"></textarea>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <button class="dm-send" id="dm-btn" onclick="sendNostrDM()">📡 send encrypted DM</button>
+          <a class="zbtn cyan" href="https://primal.net/kman2140" target="_blank" style="font-size:10px;">primal.net ↗</a>
+        </div>
+        <div class="dm-status" id="dm-status"></div>
+        <div class="dm-note">
+          NIP-04 via window.nostr · no extension?
+          <a class="lnk" href="https://primal.net/kman2140" target="_blank">primal.net</a>
+          · <a class="lnk" href="https://stacker.news/kman2140/all" target="_blank">stacker.news</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="sh">stacker.news</div>
+    <div class="kv"><span class="kk">sats stacked</span><span class="va" style="color:var(--a);font-weight:700;">30,087 ⚡</span></div>
+    <div class="kv"><span class="kk">items</span><span class="vv">336</span></div>
+    <div class="kv"><span class="kk">ln address</span><span class="vd">kman2140@stacker.news</span></div>
+    <div class="kv"><span class="kk">since</span><a class="lnk" href="https://stacker.news/items/68683" target="_blank" style="font-size:10px;">#68683</a></div>
+    <div class="kv"><span class="kk">territories</span><span class="vd">~Education · ~bitcoin</span></div>
+
+    <div class="sh">about</div>
+    <div style="font-size:11px;color:#5a7a5a;line-height:1.7;margin-bottom:7px;">
+      Teaching Bitcoin in schools since <span style="color:var(--a);">2013</span>.
+      World's first physical Bitcoin school <span style="color:var(--a);">2014</span>.
+      Victoria's first CoderDojo. Australia's first Immersive Education Club.
+      Learning Programs Director — <a class="lnk" href="https://www.digitalplayhouse.org.au" target="_blank">Digital Playhouse Foundation</a>.
+      STEM Wizard — Boneo Primary.
+      Featured: <a class="lnk" href="https://www.edutopia.org/blog/australia-school-designed-excite-and-engage-suzie-boss?qt-edu_blogs_popular_sidebar=2" target="_blank">George Lucas Foundation</a> · Bitcoin.com · <a class="lnk" href="https://bitnewsbot.com/new-kids-on-the-blockchain/" target="_blank">The Age</a>.
+      Educator Hotlist <a class="lnk-a" href="https://www.theeducatoronline.com/k12/rankings/hot-list-2019/kieran-nolan-education-technologist-wooranna-park-primary-school/265327" target="_blank">2019</a> &amp; <a class="lnk-a" href="https://www.theeducatoronline.com/k12/rankings/hot-list-2020/kieran-nolan-wooranna-park-primary-school/272708" target="_blank">2020</a>.
+    </div>
+
+    <div class="sh">projects</div>
+    <div class="kv"><span class="kk">school</span><a class="lnk-a" href="https://consensus21.school" target="_blank" style="font-size:10px;">consensus21.school</a></div>
+    <div class="kv"><span class="kk">opsec</span><a class="lnk" href="https://opsecacademy.org" target="_blank" style="font-size:10px;">opsecacademy.org</a></div>
+    <div class="kv"><span class="kk">foundation</span><a class="lnk" href="https://www.digitalplayhouse.org.au" target="_blank" style="font-size:10px;">digitalplayhouse.org.au</a></div>
+    <div class="kv"><span class="kk">~Education</span><a class="lnk-a" href="https://stacker.news/~Education" target="_blank" style="font-size:10px;">stacker.news/~Education</a></div>
+
+
+    <div class="sh">credentials</div>
+    <div style="font-size:10px;color:#3a5a3a;line-height:1.8;">B. Computer Science<br>Adv. Diploma Cyber Security<br>Adv. Diploma Applied Blockchain<br>Diploma in IT<br>Teaching TAE40116<br>Google Apps for Education<br>Cisco CCNA<br>Cisco CCNP<br>Fortinet NSE</div>
+
+    <div class="sh">relays (8)</div>
+    <div class="rrow"><span class="rdot" id="r0d" style="background:#1e2e1e;"></span><span class="rname">relay.damus.io</span><span class="rlag" id="r0l">—</span></div>
+    <div class="rrow"><span class="rdot" id="r1d" style="background:#1e2e1e;"></span><span class="rname">nos.lol</span><span class="rlag" id="r1l">—</span></div>
+    <div class="rrow"><span class="rdot" id="r2d" style="background:#1e2e1e;"></span><span class="rname">wot.utxo.one</span><span class="rlag" id="r2l">—</span></div>
+    <div class="rrow"><span class="rdot" id="r3d" style="background:#1e2e1e;"></span><span class="rname">nostr.wine</span><span class="rlag" id="r3l">—</span></div>
+    <div class="rrow"><span class="rdot" id="r4d" style="background:#1e2e1e;"></span><span class="rname">relay.nostr.band</span><span class="rlag" id="r4l">—</span></div>
+    <div class="rrow"><span class="rdot" id="r5d" style="background:#1e2e1e;"></span><span class="rname">nostr-pub.wellorder.net</span><span class="rlag" id="r5l">—</span></div>
+    <div class="rrow"><span class="rdot" id="r6d" style="background:#1e2e1e;"></span><span class="rname">relay.fountain.fm</span><span class="rlag" id="r6l">—</span></div>
+    <div class="rrow"><span class="rdot" id="r7d" style="background:#1e2e1e;"></span><span class="rname">relay.nostr.wirednet.jp</span><span class="rlag" id="r7l">—</span></div>
+    <div style="margin-top:4px;font-size:10px;color:var(--dim);">recv: <span id="nc" style="color:var(--g2);">0</span> &nbsp;·&nbsp; <span id="conn-txt">connecting…</span></div>
+
+  </div>
+</div>
+
+<!-- MIDDLE PANE -->
+<div class="pane pane-mid">
+  <div class="mid-top">
+    <div class="phdr">
+      <span class="hn">kman2140</span><span style="color:#1a2e1a;">@nostr</span>
+      <span class="hp">:~ $ nostr-cli sub --author $PUBKEY --kind 1 --live</span>
+      <span class="hlv"><span class="livdot"></span>LIVE</span>
+    </div>
+    <div class="scr">
+      <div class="cmt" style="margin-bottom:7px;"># WebSocket · 8 relays · kind:1 text notes · real-time</div>
+      <div class="note-stream" id="note-stream">
+        <div class="skel"></div><div class="skel" style="width:82%"></div>
+        <div class="skel" style="width:68%"></div><div class="skel"></div>
+        <div class="skel" style="width:75%"></div>
+      </div>
+      <div style="margin-top:8px;font-size:10px;">
+        <a class="lnk" href="https://primal.net/kman2140" target="_blank">→ primal.net/kman2140</a>
+        &nbsp;·&nbsp;
+        <a class="lnk" href="https://nosta.me/npub1cyla8qgt9gv8y6ydv8s2prt89h8afc0sr2kaz64ryjmlpdrzxm4qwlh53q" target="_blank">nosta.me</a>
+      </div>
+    </div>
+  </div>
+  <div class="mid-bot">
+    <div class="phdr">
+      <span class="hn">kdnolan</span><span style="color:#1a2e1a;">@github</span>
+      <span class="hp">:~/kdnolan.github.io $ ls articles/ avatars/</span>
+    </div>
+    <div class="scr" style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px;">
+      <div>
+        <div class="cmt"># articles/</div>
+        <div id="gh-articles"><div class="skel"></div><div class="skel" style="width:70%"></div></div>
+      </div>
+      <div>
+        <div class="cmt"># echo $PUBKEY &amp;&amp; lightning-cli info</div>
+        <div class="npub" style="margin-bottom:6px;font-size:10px;">
+          <a href="https://primal.net/kman2140" target="_blank" style="text-decoration:none;">
+            <span class="n0">npub1</span><span class="n1">cyla8</span><span class="n2">qgt9g</span><span class="n3">v8y6y</span><span class="n4">dv8s2</span><span class="n5">prt89</span><span class="n6">h8afc</span><span class="n7">0sr2k</span><span class="n1">az64r</span><span class="n2">yjmlp</span><span class="n3">drzxm</span><span class="n4">4qwlh</span><span class="n1">53q</span>
+          </a>
+        </div>
+        <div class="btc-wrap" style="margin-bottom:5px;">
+          <div style="color:#2a1800;font-size:9px;margin-bottom:3px;"><a class="lnk-a" href="https://coinos.io/kdnolan/receive" target="_blank">coinos.io/kdnolan/receive</a></div>
+          <div class="btc-addr" style="font-size:12px;">⚡ kdnolan@coinos.io</div>
+          <div class="btc-sub">LUD-16 · NIP-57 · ~0 fees</div>
+          <hr class="btc-divider">
+          <div class="pay-row">
+            <a class="zbtn" href="https://coinos.io/kdnolan/receive" target="_blank">⚡ coinos</a>
+            <a class="zbtn" href="lightning:kdnolan@coinos.io">⚡ wallet</a>
+            <a class="zbtn green" href="https://primal.net/kman2140" target="_blank">nostr zap</a>
+            <a class="zbtn cyan" href="https://stacker.news/kman2140/all" target="_blank">SN zap ⚡</a>
+            <a class="zbtn" href="https://revolut.me/kieranvmuk" target="_blank">revolut</a>
+          </div>
+        </div>
+        <div class="c21-donate">
+          <div style="color:#003040;font-size:9px;margin-bottom:3px;"># C21 — DGR tax-deductible AUS</div>
+          <div class="c21-donate-addr" style="font-size:11px;">⚡ CONSENSUS21@coinos.io</div>
+          <div class="pay-row" style="margin-top:5px;">
+            <a class="zbtn cyan" href="https://coinos.io/CONSENSUS21/receive" target="_blank">⚡ donate</a>
+            <a class="zbtn cyan" href="lightning:CONSENSUS21@coinos.io">wallet</a>
+            <a class="zbtn" href="https://www.acnc.gov.au/charity/charities/51dfc341-a5cd-eb11-8235-002248103324/profile" target="_blank">ACNC ↗</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT PANE -->
+<div class="pane">
+  <div class="phdr"><span class="hn">kman2140</span><span style="color:#1a2e1a;">@nostr</span><span class="hp">:~ $ cat consensus21.md</span></div>
+  <div class="scr">
+
+    <!-- Fountain.fm -->
+    <div class="pr" style="margin-top:0;">
+      <span class="pu">kman2140</span><span class="pa">@</span><span class="ph">fountain.fm</span><span class="pa">:</span><span class="ps">~$</span>
+      <span class="cmd">fountain profile <span class="cf">--user</span> <span class="ca">kman2140</span></span>
+    </div>
+    <div class="out">
+      <div style="background:#08080a;border:1px solid #1a0a2a;padding:7px 9px;margin-bottom:6px;overflow:hidden;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:nowrap;min-width:0;">
+          <div style="width:5px;height:5px;border-radius:50%;background:#8844ff;box-shadow:0 0 6px #8844ff;flex-shrink:0;"></div>
+          <a href="https://www.fountain.fm/kman2140" target="_blank" style="color:#aa66ff;font-size:11px;font-weight:700;text-decoration:none;border-bottom:1px solid #2a1040;white-space:nowrap;">fountain.fm/kman2140</a>
+          <span style="color:#2a1040;font-size:9px;flex-shrink:0;white-space:nowrap;">⚡ V4V</span>
+        </div>
+        <div style="display:flex;gap:12px;font-size:10px;margin-bottom:5px;">
+          <span><span style="color:#aa66ff;font-weight:700;">619</span> <span style="color:#2a1040;">following</span></span>
+          <span><span style="color:#aa66ff;font-weight:700;">246</span> <span style="color:#2a1040;">followers</span></span>
+          <span style="color:#2a1040;">⚡ streaming sats</span>
+        </div>
+        <div style="color:#1a0a2a;font-size:9px;margin-bottom:5px;"># podcast activity via relay.fountain.fm</div>
+        <div id="fountain-feed"><div class="skel"></div><div class="skel" style="width:80%"></div><div class="skel" style="width:60%"></div></div>
+        <div style="margin-top:5px;font-size:9px;">
+          <a href="https://www.fountain.fm/kman2140" target="_blank" style="color:#6633aa;text-decoration:none;border-bottom:1px solid #1a0030;">→ view profile</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stacker News top posts -->
+    <div class="pr">
+      <span class="pu">kman2140</span><span class="pa">@</span><span class="ph">stacker.news</span><span class="pa">:</span><span class="ps">~$</span>
+      <span class="cmd">sn posts <span class="cf">--author</span> <span class="ca">kman2140</span> <span class="cf">--top</span></span>
+    </div>
+    <div class="out">
+      <div class="cmt"># 30,087 sats stacked · 336 items · <a class="lnk" href="https://stacker.news/items/68683" target="_blank">since #68683</a> · <a class="lnk-a" href="https://stacker.news/kman2140/all" target="_blank">stacker.news/kman2140</a></div>
+      <div style="display:grid;gap:4px;">
+        <div class="sn-post"><a class="sn-title" href="https://stacker.news/items/1269242" target="_blank">HackerSpace: Students Take on Bitcoin and Minecraft Challenge</a><span class="sn-sats">1,678 ⚡</span><span class="sn-ter">~Education</span></div>
+        <div class="sn-post"><a class="sn-title" href="https://stacker.news/items/933152" target="_blank">Building a Physical Bitcoin School! - Consensus21.School</a><span class="sn-sats">323 ⚡</span><span class="sn-ter">~Education</span></div>
+        <div class="sn-post"><a class="sn-title" href="https://stacker.news/items/981399" target="_blank">AI schools making legacy school obsolete.</a><span class="sn-sats">298 ⚡</span><span class="sn-ter">~Education</span></div>
+        <div class="sn-post"><a class="sn-title" href="https://stacker.news/items/944635" target="_blank">Raising the Bar for Public Office: Proving Intelligence Through Asymmetric Keys</a><span class="sn-sats">138 ⚡</span><span class="sn-ter">~Politics</span></div>
+        <div class="sn-post"><a class="sn-title" href="https://stacker.news/items/1092484" target="_blank">The Genius Engineering Behind Bitcoin's Design</a><span class="sn-sats">40 ⚡</span><span class="sn-ter">~bitcoin</span></div>
+        <div class="sn-post"><a class="sn-title" href="https://stacker.news/items/994262" target="_blank">The Ultimate Bitcoin Argument</a><span class="sn-sats">40 ⚡</span><span class="sn-ter">~bitcoin</span></div>
+        <div class="sn-post"><a class="sn-title" href="https://stacker.news/items/1194418" target="_blank">SeedSigner!</a><span class="sn-sats">30 ⚡</span><span class="sn-ter">~bitcoin</span></div>
+      </div>
+      <div style="margin-top:6px;font-size:10px;">
+        <a class="lnk-a" href="https://stacker.news/kman2140/all" target="_blank">→ all 336 items</a>
+        &nbsp;·&nbsp;<a class="lnk-a" href="https://stacker.news/~Education" target="_blank">~Education</a>
+        &nbsp;·&nbsp;<a class="lnk-a" href="https://stacker.news/consensus21/all" target="_blank">consensus21 SN</a>
+      </div>
+    </div>
+
+    <!-- avatars -->
+    <div class="pr">
+      <span class="pu">kdnolan</span><span class="pa">@</span><span class="ph">github</span><span class="pa">:</span><span class="pp">~/kdnolan.github.io</span><span class="ps">$</span>
+      <span class="cmd">ls <span class="ca">avatars/</span></span>
+    </div>
+    <div class="out">
+      <div id="gh-avatars"><div class="skel" style="height:40px;width:55%;border-radius:1px;"></div></div>
+    </div>
+
+
+
+    <!-- Consensus21 -->
+    <div class="pr">
+      <span class="pu">kman2140</span><span class="pa">@</span><span class="ph">nostr</span><span class="pa">:</span><span class="ps">~$</span>
+      <span class="cmd">cat <span class="ca">consensus21.school</span></span>
+    </div>
+    <div class="out">
+      <div style="color:var(--g);font-size:12px;font-weight:700;margin-bottom:6px;">
+        <a class="lnk-g" href="https://consensus21.school" target="_blank">Consensus21.School</a>
+        <span class="c21-badge">open-source</span>
+        <span class="c21-badge" style="color:var(--a2);border-color:var(--a3);">DGR charity</span>
+      </div>
+      <div style="font-size:11px;color:#4a6a4a;line-height:1.7;margin-bottom:8px;">An open-source educational protocol removing hierarchies and tuition debt. Self-directed, problem-based learning. Ages 5–21. Auspiced by <a class="lnk" href="https://www.digitalplayhouse.org.au" target="_blank">Digital Playhouse Foundation</a> (DGR — tax-deductible AUS).</div>
+      <div class="c21-card">
+        <div class="c21-title"><a href="https://stacker.news/consensus21/all" target="_blank">📰 C21 News</a></div>
+        <div class="c21-desc">Updates via Stacker News and Nostr. ~Education RSS feed.</div>
+        <div class="c21-links">
+          <a class="c21-link" href="https://stacker.news/consensus21/all" target="_blank">Stacker News</a>
+          <a class="c21-link" href="https://primal.net/p/nprofile1qqstk8yx8gkptsf3k3y5u7sgrjwv24h2h4hzfj6gdrdwx79u99fu87ccjdc2x" target="_blank">Nostr</a>
+          <a class="c21-link" href="https://stacker.news/~education/rss" target="_blank">RSS</a>
+        </div>
+      </div>
+      <div class="c21-card">
+        <div class="c21-title"><a href="https://consensus21.school/whitepaper.html" target="_blank">📄 White Paper</a></div>
+        <div class="c21-desc">Decentralised education protocol — eliminating standardised testing, hierarchies, and tuition debt.</div>
+        <div class="c21-links">
+          <a class="c21-link" href="https://consensus21.school/whitepaper.html" target="_blank">Read</a>
+          <a class="c21-link" href="https://github.com/consensus21school/consensus21school.github.io/blob/main/whitepaper.md" target="_blank">GitHub</a>
+        </div>
+      </div>
+      <div class="c21-card">
+        <div class="c21-title"><a href="https://v4v.consensus21.school/" target="_blank">⚡ V4V Lessons</a></div>
+        <div class="c21-desc">Value for Value — community-powered lessons, contributors embed their Lightning address.</div>
+        <div class="c21-links">
+          <a class="c21-link" href="https://v4v.consensus21.school/" target="_blank">V4V Lessons</a>
+          <a class="c21-link" href="https://stacker.news/items/260178" target="_blank">V4V info</a>
+        </div>
+      </div>
+      <div class="c21-card">
+        <div class="c21-title"><a href="https://stacker.news/~Education" target="_blank">📚 ~Education Territory</a></div>
+        <div class="c21-desc">C21 &amp; DPF contributed 3M sats via the DPF Learner Fund to launch ~Education on Stacker News.</div>
+        <div class="c21-links">
+          <a class="c21-link" href="https://stacker.news/~Education" target="_blank">~Education</a>
+          <a class="c21-link" href="https://stacker.news/~education/rss" target="_blank">RSS</a>
+          <a class="c21-link" href="https://stacker.news/items/339533#territories" target="_blank">~Territories</a>
+        </div>
+      </div>
+      <div class="c21-card">
+        <div class="c21-title"><a href="https://bitcoinerjobs.com/" target="_blank">💼 Jobs</a></div>
+        <div class="c21-desc">Roles on Stacker News Jobs and Bitcoiner Jobs. Students upskilled through hands-on learning.</div>
+        <div class="c21-links">
+          <a class="c21-link" href="https://bitcoinerjobs.com/" target="_blank">Bitcoiner Jobs</a>
+          <a class="c21-link" href="https://stacker.news/~jobs" target="_blank">~Jobs SN</a>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Privacy -->
+    <div class="pr">
+      <span class="pu">kman2140</span><span class="pa">@</span><span class="ph">nostr</span><span class="pa">:</span><span class="ps">~$</span>
+      <span class="cmd">cat <span class="ca">privacy.txt</span></span>
+    </div>
+    <div class="out">
+      <div style="font-size:10px;color:#3a5a3a;line-height:1.8;margin-bottom:6px;">
+        Exclusively on <span style="color:var(--g2);">Nostr</span>. Gmail compromised — Protonmail or Nostr DM only.<br>
+        <a class="lnk" href="https://www.howtogeek.com/how-to-switch-from-google-to-proton/" target="_blank">→ switch Google → Proton</a><br>
+        <a class="lnk" href="https://haveibeenpwned.com/" target="_blank">→ check email breaches (HaveIBeenPwned)</a><br>
+        <a class="lnk" href="https://nostr.how/en/get-started" target="_blank">→ get started with Nostr</a><br>
+        <a class="lnk" href="https://www.gnu.org/licenses/gpl-3.0.en.html" target="_blank">→ GPLv3 Copyleft License</a>
+      </div>
+      <div class="no-list">NOT on: <span class="x">Facebook☠</span> <span class="x">Instagram☠</span> <span class="x">Twitter☠</span> <span class="x">LinkedIn☠</span> <span class="x">TikTok☠</span> <span class="x">Discord☠</span> <span class="x">WhatsApp☠</span> <span class="x">Reddit☠</span> <span class="x">WeChat☠</span></div>
+    </div>
+
+    <!-- Repos -->
+    <div class="pr">
+      <span class="pu">kdnolan</span><span class="pa">@</span><span class="ph">github</span><span class="pa">:</span><span class="ps">~$</span>
+      <span class="cmd">gh repo list <span class="cf">-L 10</span></span>
+    </div>
+    <div class="out">
+      <div id="gh-repos"><div class="skel"></div><div class="skel" style="width:75%"></div></div>
+    </div>
+
+
+    <div class="pr"><span class="pu">kman2140</span><span class="pa">@</span><span class="ph">nostr</span><span class="pa">:</span><span class="ps">~$</span><span class="cur"></span></div>
+
+  </div>
+</div>
+
+</div><!-- /tmux-body -->
+
+<!-- STATUS BAR -->
+<div class="sbar">
+  <div class="ss ss-pfx">[kman2140]</div>
+  <div class="ss ss-mode">NORMAL</div>
+  <div class="ss" style="color:#1a3a22;font-size:10px;">8 relays · <span id="sb-nc" style="color:var(--g2);">0</span> notes</div>
+  <div class="ss" style="color:#1e301e;gap:5px;font-size:10px;">
+    <span id="sb-r0" style="width:5px;height:5px;border-radius:50%;background:#1e2e1e;display:inline-block;"></span>damus
+    <span id="sb-r1" style="width:5px;height:5px;border-radius:50%;background:#1e2e1e;display:inline-block;"></span>nos.lol
+    <span id="sb-r2" style="width:5px;height:5px;border-radius:50%;background:#1e2e1e;display:inline-block;"></span>utxo
+    <span id="sb-r3" style="width:5px;height:5px;border-radius:50%;background:#1e2e1e;display:inline-block;"></span>wine
+  </div>
+  <div class="ss" style="color:#1a2e1a;font-size:10px;">⚡ kdnolan@coinos.io</div>
+  <div class="ss"><a class="lnk-a" href="https://consensus21.school" target="_blank" style="font-size:10px;color:#1e4020;border-color:#0a200a;">consensus21.school</a></div>
+  <div class="ss ss-r"></div>
+  <div class="ss ss-clk" id="clock">--:--:--</div>
+</div>
+
+<script>
+'use strict';
+
+const PUBKEY  = 'c13fd3810b2a1872688d61e0a08d672dcfd4e1f01aadd16aa324b7f0b46236ea';
+const GH_USER = 'kdnolan';
+const GH_REPO = 'kdnolan.github.io';
+const MAX_NOTES = 35;
+
+/* CLOCK */
+function tick(){
+  const el = document.getElementById('clock');
+  if(el) el.textContent = new Date().toISOString().slice(0,19).replace('T',' ')+' UTC';
+}
+tick(); setInterval(tick, 1000);
+
+/* NOTES */
+const seen = new Set(), notes = [];
+let noteCount = 0;
+
+function relTime(u){
+  const d = Math.floor(Date.now()/1000 - u);
+  if(d < 60)    return d+'s ago';
+  if(d < 3600)  return Math.floor(d/60)+'m ago';
+  if(d < 86400) return Math.floor(d/3600)+'h ago';
+  return Math.floor(d/86400)+'d ago';
+}
+
+function renderNotes(){
+  // render into both desktop and mobile streams
+  ['note-stream','m-note-stream'].forEach(id => {
+    const el = document.getElementById(id);
+    if(!el || !notes.length) return;
+    el.innerHTML = '';
+    notes.slice(0, MAX_NOTES).forEach((ev, i) => {
+      const div = document.createElement('div');
+      div.className = 'note' + (ev._fresh && i===0 ? ' fresh' : '');
+      const imgUrls = [];
+      const text = ev.content.replace(/https?:\/\/\S+\.(jpg|jpeg|png|gif|webp|avif)(\?[^\s]*)?/gi, m => { imgUrls.push(m); return ''; });
+      const bodyHtml = text
+        .replace(/(https?:\/\/[^\s<>"]+)/gi, m => `<a href="${m}" target="_blank" rel="noopener noreferrer">${m.length > 52 ? m.slice(0,49)+'…' : m}</a>`)
+        .replace(/\n/g, '<br>');
+      const imgHtml = imgUrls.map(src =>
+        `<img class="note-img" src="${src}" referrerpolicy="no-referrer" crossorigin="anonymous" loading="lazy" onerror="this.style.display='none'" alt="">`
+      ).join('');
+      div.innerHTML =
+        `<div class="note-ts"><span>${new Date(ev.created_at*1000).toISOString().slice(0,16).replace('T',' ')} · ${relTime(ev.created_at)}</span>${ev._fresh ? ' <span class="note-new">NEW</span>' : ''}</div>` +
+        `<div class="note-body">${bodyHtml}${imgHtml}</div>`;
+      el.appendChild(div);
+      ev._fresh = false;
+    });
+  });
+}
+
+function ingest(ev, fresh){
+  if(ev.kind !== 1) return;
+  if(seen.has(ev.id)) return;
+  seen.add(ev.id);
+  ev._fresh = !!fresh;
+  notes.unshift(ev);
+  notes.sort((a,b) => b.created_at - a.created_at);
+  noteCount++;
+  ['nc','sb-nc','m-count','m-nc'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = noteCount; });
+  renderNotes();
+}
+
+/* RELAYS */
+const RELAYS = [
+  { url:'wss://relay.damus.io',          dotId:'r0d', lagId:'r0l', sbId:'sb-r0' },
+  { url:'wss://nos.lol',                 dotId:'r1d', lagId:'r1l', sbId:'sb-r1' },
+  { url:'wss://wot.utxo.one',            dotId:'r2d', lagId:'r2l', sbId:'sb-r2' },
+  { url:'wss://nostr.wine',              dotId:'r3d', lagId:'r3l', sbId:'sb-r3' },
+  { url:'wss://relay.nostr.band',        dotId:'r4d', lagId:'r4l', sbId:'sb-r4' },
+  { url:'wss://nostr-pub.wellorder.net', dotId:'r5d', lagId:'r5l', sbId:'sb-r5' },
+  { url:'wss://relay.fountain.fm',       dotId:'r6d', lagId:'r6l', sbId:'sb-r6' },
+  { url:'wss://relay.nostr.wirednet.jp', dotId:'r7d', lagId:'r7l', sbId:'sb-r7' },
+];
+
+let connCount = 0;
+
+function updateConnUI(){
+  const el = document.getElementById('conn-txt');
+  if(!el) return;
+  el.textContent = connCount > 0 ? connCount+'/8 connected' : 'reconnecting…';
+  el.style.color  = connCount > 0 ? 'var(--g2)' : 'var(--a2)';
+}
+
+function connectRelay(cfg, delay){
+  let ws, backoff = 2000, pingSent = 0, liveSub = false;
+
+  function setDot(ok){
+    [cfg.dotId, cfg.sbId].forEach(id => { const el = document.getElementById(id); if(el) el.style.background = ok ? 'var(--g2)' : '#1e2e1e'; });
+    // also light up mobile dots (m-r0 through m-r7 match relay index)
+    const mDotId = 'm-r' + RELAYS.indexOf(cfg);
+    const mDot = document.getElementById(mDotId);
+    if(mDot) mDot.style.background = ok ? 'var(--g2)' : '#1e2e1e';
+    const lag = document.getElementById(cfg.lagId);
+    if(lag && !ok) lag.textContent = '—';
+  }
+
+  function connect(){
+    try { ws = new WebSocket(cfg.url); } catch(e){ retry(); return; }
+    ws.onopen = () => {
+      backoff = 2000; connCount++; setDot(true); updateConnUI();
+      ws.send(JSON.stringify(['REQ','hist',{ authors:[PUBKEY], kinds:[1], limit:30 }]));
+      setTimeout(() => {
+        if(ws.readyState===1){ pingSent=Date.now(); ws.send(JSON.stringify(['REQ','p'+Date.now(),{ kinds:[30078], limit:1 }])); }
+      }, 900+Math.random()*300);
+      setTimeout(() => {
+        if(ws.readyState===1 && !liveSub){ liveSub=true; ws.send(JSON.stringify(['REQ','live',{ authors:[PUBKEY], kinds:[1], since:Math.floor(Date.now()/1000) }])); }
+      }, 8000);
+    };
+    ws.onmessage = (e) => {
+      if(pingSent){ const lag=document.getElementById(cfg.lagId); if(lag) lag.textContent=(Date.now()-pingSent)+'ms'; pingSent=0; }
+      try { const msg=JSON.parse(e.data); if(msg[0]==='EVENT'&&msg[2]) ingest(msg[2],msg[1]==='live'); } catch(_){}
+    };
+    ws.onerror = () => {};
+    ws.onclose = () => { connCount=Math.max(0,connCount-1); setDot(false); liveSub=false; updateConnUI(); retry(); };
+  }
+
+  function retry(){ setTimeout(connect, backoff); backoff=Math.min(backoff*2,60000); }
+  setTimeout(connect, delay);
+}
+
+RELAYS.forEach((cfg, i) => connectRelay(cfg, i*350));
+
+/* GITHUB */
+async function loadGH(){
+  try {
+    const r = await fetch(`https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/articles`);
+    const files = await r.json();
+    const el = document.getElementById('gh-articles');
+    if(el && Array.isArray(files)){
+      const md = files.filter(f => f.type==='file');
+      el.innerHTML = md.length
+        ? md.map(f=>`<div class="art"><a class="art-name lnk" href="${f.html_url}" target="_blank">${f.name.replace(/\.(md|html|txt)$/i,'').replace(/[-_]/g,' ')}</a><span class="art-sz">${(f.size/1024).toFixed(1)}k</span></div>`).join('')
+        : '<div style="color:var(--dim);font-size:10px;">// empty</div>';
+    }
+  } catch(e){
+    const el=document.getElementById('gh-articles');
+    if(el) el.innerHTML=`<div class="err"><a class="lnk" href="https://github.com/${GH_USER}/${GH_REPO}/tree/master/articles" target="_blank">view on github</a></div>`;
+  }
+
+  try {
+    const r = await fetch(`https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/avatars`);
+    const files = await r.json();
+    const el = document.getElementById('gh-avatars');
+    if(el && Array.isArray(files)){
+      const imgs = files.filter(f => /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(f.name));
+      el.innerHTML = imgs.length
+        ? `<div class="av-grid">${imgs.map(f=>`<img class="av-thumb" src="${f.download_url}" title="${f.name}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()" onclick="window.open('${f.html_url}','_blank')">`).join('')}</div><div style="margin-top:3px;font-size:9px;color:var(--dim);">${imgs.length} files · <a class="lnk" href="https://github.com/${GH_USER}/${GH_REPO}/tree/master/avatars" target="_blank">all</a></div>`
+        : '<div style="color:var(--dim);font-size:10px;">// empty</div>';
+    }
+  } catch(e){
+    const el=document.getElementById('gh-avatars');
+    if(el) el.innerHTML=`<div class="err"><a class="lnk" href="https://github.com/${GH_USER}/${GH_REPO}/tree/master/avatars" target="_blank">view</a></div>`;
+  }
+
+  try {
+    const r = await fetch(`https://api.github.com/users/${GH_USER}/repos?per_page=10&sort=updated`);
+    const repos = await r.json();
+    const el = document.getElementById('gh-repos');
+    if(el && Array.isArray(repos)){
+      el.innerHTML = repos.map(repo=>`<div class="repo-row"><a class="repo-name lnk" href="${repo.html_url}" target="_blank">${repo.name}</a><span class="repo-lang">${repo.language||''}</span><span class="repo-star">★${repo.stargazers_count}</span></div>`).join('');
+    }
+  } catch(e){
+    const el=document.getElementById('gh-repos');
+    if(el) el.innerHTML=`<div class="err"><a class="lnk" href="https://github.com/${GH_USER}" target="_blank">github.com/${GH_USER}</a></div>`;
+  }
+}
+
+loadGH();
+
+/* MOBILE TAB SWITCHING */
+function mTab(i, btn){
+  document.querySelectorAll('.m-tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  document.querySelectorAll('.m-nav-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+}
+
+/* MOBILE DM — shares same logic but different element IDs */
+function sendNostrDMFrom(fromId, msgId, btnId, statusId){
+  // swap IDs so the shared function works
+  const origFrom = document.getElementById('dm-from');
+  const origMsg  = document.getElementById('dm-msg');
+  const origBtn  = document.getElementById('dm-btn');
+  const origSt   = document.getElementById('dm-status');
+  // temporarily point shared function at mobile elements
+  const mFrom = document.getElementById(fromId);
+  const mMsg  = document.getElementById(msgId);
+  const mBtn  = document.getElementById(btnId);
+  const mSt   = document.getElementById(statusId);
+  // run with mobile elements
+  (async ()=>{
+    const msg  = (mMsg.value||'').trim();
+    const from = (mFrom.value||'').trim();
+    if(!msg){ mSt.className='dm-status err'; mSt.innerHTML='⚠ please enter a message'; mSt.style.display='block'; return; }
+    if(!window.nostr){ mSt.className='dm-status err'; mSt.innerHTML='⚠ no Nostr extension installed'; mSt.style.display='block'; return; }
+    mBtn.disabled=true; mSt.className='dm-status sending'; mSt.innerHTML='⏳ encrypting…'; mSt.style.display='block';
+    try {
+      const pub=await window.nostr.getPublicKey();
+      const full=from?`[from: ${from}]\n\n${msg}`:msg;
+      const ct=await window.nostr.nip04.encrypt(RECIPIENT,full);
+      const signed=await window.nostr.signEvent({kind:4,pubkey:pub,created_at:Math.floor(Date.now()/1000),tags:[['p',RECIPIENT]],content:ct});
+      let ok=0;
+      await Promise.allSettled(['wss://relay.damus.io','wss://nos.lol','wss://nostr.wine'].map(url=>new Promise((res,rej)=>{
+        try{const ws=new WebSocket(url);const t=setTimeout(()=>{ws.close();rej();},8000);ws.onopen=()=>ws.send(JSON.stringify(['EVENT',signed]));ws.onmessage=(e)=>{try{if(JSON.parse(e.data)[0]==='OK'){clearTimeout(t);ok++;ws.close();res();}}catch(_){}};ws.onerror=()=>{clearTimeout(t);rej();};}catch(e){rej(e);}
+      })));
+      if(ok>0){mSt.className='dm-status ok';mSt.innerHTML=`✔ sent via ${ok} relay${ok>1?'s':''}`;mMsg.value='';mFrom.value='';}
+      else{mSt.className='dm-status err';mSt.innerHTML='⚠ relay publish failed';}
+    }catch(e){mSt.className='dm-status err';mSt.innerHTML=(e&&e.message&&e.message.includes('rejected'))?'⚠ cancelled':'⚠ error';}
+    mBtn.disabled=false;
+  })();
+}
+
+/* FOUNTAIN.FM — subscribe to relay.fountain.fm for podcast activity */
+(function(){
+  const FOUNTAIN_RELAY = 'wss://relay.fountain.fm';
+  const fountainNotes = [];
+  const fountainSeen = new Set();
+
+  function renderFountain(){
+    const el = document.getElementById('fountain-feed');
+    if(!el || !fountainNotes.length) return;
+    el.innerHTML = '';
+    fountainNotes.slice(0, 8).forEach(ev => {
+      const div = document.createElement('div');
+      div.style.cssText = 'padding:4px 0;border-bottom:1px solid #0d0515;font-size:10px;';
+      const ts = new Date(ev.created_at*1000).toISOString().slice(0,10);
+      // Extract first fountain.fm link if present
+      const fmLink = (ev.content.match(/https?:\/\/(?:www\.)?fountain\.fm\/[^\s<>"]+/) || [])[0];
+      const body = ev.content
+        .replace(/https?:\/\/\S+/gi, m => {
+          const label = m.length > 46 ? m.slice(0,43)+'…' : m;
+          return `<a href="${m}" target="_blank" style="color:#6633aa;text-decoration:none;">${label}</a>`;
+        })
+        .replace(/\n/g, ' ');
+      div.innerHTML =
+        `<div style="color:#2a1040;font-size:9px;margin-bottom:2px;">${ts}</div>` +
+        `<div style="color:#7a5a9a;line-height:1.5;">${body.slice(0, 180)}${body.length>180?'…':''}</div>`;
+      el.appendChild(div);
+    });
+  }
+
+  try {
+    const ws = new WebSocket(FOUNTAIN_RELAY);
+    ws.onopen = () => {
+      ws.send(JSON.stringify(['REQ','fountain-feed',{
+        authors: [PUBKEY],
+        kinds: [1],
+        limit: 20
+      }]));
+    };
+    ws.onmessage = (e) => {
+      try {
+        const msg = JSON.parse(e.data);
+        if(msg[0]==='EVENT' && msg[2] && !fountainSeen.has(msg[2].id)){
+          // Only show notes that mention fountain.fm
+          if(msg[2].content && msg[2].content.includes('fountain')) {
+            fountainSeen.add(msg[2].id);
+            fountainNotes.push(msg[2]);
+            fountainNotes.sort((a,b)=>b.created_at-a.created_at);
+            renderFountain();
+          }
+        }
+      } catch(_){}
+    };
+    ws.onerror = () => {};
+    ws.onclose = () => {};
+  } catch(e){}
+
+  // Also pull from already-loaded notes (from main relays) that reference fountain
+  setTimeout(() => {
+    notes.filter(n => n.content && n.content.toLowerCase().includes('fountain')).forEach(n => {
+      if(!fountainSeen.has(n.id)){
+        fountainSeen.add(n.id);
+        fountainNotes.push(n);
+      }
+    });
+    fountainNotes.sort((a,b)=>b.created_at-a.created_at);
+    if(fountainNotes.length) renderFountain();
+    else {
+      const el = document.getElementById('fountain-feed');
+      if(el) el.innerHTML = '<div style="color:#1a0a2a;font-size:10px;">// no recent fountain activity found on relays<br>→ <a href="https://www.fountain.fm/kman2140" target="_blank" style="color:#6633aa;">view on fountain.fm</a></div>';
+    }
+  }, 12000);
+})();
+
+
+
+/* SIGN IN WITH NOSTR */
+async function signInWithNostr(){
+  const btn = document.getElementById('nostr-signin-btn');
+  const id  = document.getElementById('nostr-identity');
+  if(!window.nostr){
+    if(id) id.innerHTML = '⚠ no extension — install <a href="https://github.com/fiatjaf/nos2x" target="_blank" class="lnk">nos2x</a> or <a href="https://getalby.com" target="_blank" class="lnk">Alby</a>';
+    return;
+  }
+  try {
+    if(btn) btn.disabled = true;
+    const pub = await window.nostr.getPublicKey();
+    const short = pub.slice(0,8)+'…'+pub.slice(-6);
+    if(id) id.innerHTML = `<span style="color:var(--g2);">✔ signed in</span> · <span style="color:var(--dim);">${short}</span>`;
+    const fromEl = document.getElementById('dm-from');
+    if(fromEl && !fromEl.value){
+      try {
+        const ws2 = new WebSocket('wss://relay.damus.io');
+        ws2.onopen = ()=> ws2.send(JSON.stringify(['REQ','meta',{kinds:[0],authors:[pub],limit:1}]));
+        ws2.onmessage = (e)=>{
+          try {
+            const msg = JSON.parse(e.data);
+            if(msg[0]==='EVENT'&&msg[2]&&msg[2].kind===0){
+              const meta = JSON.parse(msg[2].content);
+              if(fromEl&&!fromEl.value) fromEl.value = meta.name||meta.display_name||short;
+              ws2.close();
+            }
+          } catch(_){}
+        };
+        ws2.onerror=()=>{ if(fromEl&&!fromEl.value) fromEl.value=short; };
+        setTimeout(()=>{ try{ws2.close();}catch(_){} if(fromEl&&!fromEl.value) fromEl.value=short; },4000);
+      } catch(_){ if(fromEl&&!fromEl.value) fromEl.value=short; }
+    }
+    if(btn){ btn.textContent='✔ signed in'; btn.style.color='var(--g2)'; btn.style.borderColor='var(--g3)'; }
+  } catch(e){
+    if(id) id.innerHTML='⚠ sign-in cancelled';
+    if(btn) btn.disabled=false;
+  }
+}
+window.addEventListener('load',()=>{
+  const id=document.getElementById('nostr-identity');
+  if(window.nostr&&id) id.innerHTML='<span style="color:var(--g2);">extension detected</span> · click to sign in';
+});
+
+/* NOSTR DM (NIP-04) */
+const RECIPIENT = 'c13fd3810b2a1872688d61e0a08d672dcfd4e1f01aadd16aa324b7f0b46236ea';
+
+async function sendNostrDM(){
+  const btn   = document.getElementById('dm-btn');
+  const msgEl = document.getElementById('dm-msg');
+  const fromEl= document.getElementById('dm-from');
+  const msg   = (msgEl.value||'').trim();
+  const from  = (fromEl.value||'').trim();
+  if(!msg){ showStatus('err','⚠ please enter a message'); return; }
+  if(!window.nostr){
+    showStatus('err','⚠ no Nostr extension — install <a href="https://github.com/fiatjaf/nos2x" target="_blank" class="lnk">nos2x</a>, <a href="https://getalby.com" target="_blank" class="lnk">Alby</a>, or <a href="https://apps.apple.com/app/nostore/id1666553677" target="_blank" class="lnk">Nostore</a>');
+    return;
+  }
+  btn.disabled=true; showStatus('sending','⏳ encrypting &amp; signing…');
+  try {
+    const pub  = await window.nostr.getPublicKey();
+    const full = from ? `[from: ${from}]\n\n${msg}` : msg;
+    const ct   = await window.nostr.nip04.encrypt(RECIPIENT, full);
+    const signed = await window.nostr.signEvent({ kind:4, pubkey:pub, created_at:Math.floor(Date.now()/1000), tags:[['p',RECIPIENT]], content:ct });
+    let ok=0;
+    await Promise.allSettled(['wss://relay.damus.io','wss://nos.lol','wss://nostr.wine'].map(url=>new Promise((res,rej)=>{
+      try{
+        const ws=new WebSocket(url);
+        const t=setTimeout(()=>{ws.close();rej();},8000);
+        ws.onopen=()=>ws.send(JSON.stringify(['EVENT',signed]));
+        ws.onmessage=(e)=>{ try{ if(JSON.parse(e.data)[0]==='OK'){clearTimeout(t);ok++;ws.close();res();} }catch(_){} };
+        ws.onerror=()=>{clearTimeout(t);rej();};
+      }catch(e){rej(e);}
+    })));
+    if(ok>0){ showStatus('ok',`✔ DM sent encrypted via ${ok} relay${ok>1?'s':''}`); msgEl.value=''; fromEl.value=''; }
+    else showStatus('err','⚠ relay publish failed — try <a href="https://primal.net/kman2140" target="_blank" class="lnk">primal.net</a>');
+  } catch(e){
+    showStatus('err',(e&&e.message&&e.message.includes('rejected'))?'⚠ signing cancelled':'⚠ error: '+(e&&e.message||e));
+  }
+  btn.disabled=false;
+}
+
+function showStatus(type,html){
+  const el=document.getElementById('dm-status');
+  el.className='dm-status '+type; el.innerHTML=html; el.style.display='block';
+}
+</script>
+</body>
+</html>
