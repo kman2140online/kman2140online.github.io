@@ -503,6 +503,10 @@ a.lnk-a:hover{color:var(--a);}
           <span class="btc-k">zaps (nostr)</span><span style="color:var(--g2);">NIP-57 ✔</span>
           <span class="btc-k">sn address</span><span class="btc-v">kman2140@stacker.news</span>
           <span class="btc-k">revolut</span><a class="lnk-a" href="https://revolut.me/kieranvmuk" target="_blank" style="font-size:11px;">revolut.me/kieranvmuk</a>
+          <span class="btc-k">block</span><span class="btc-v"><span id="btc-block-mob" style="color:var(--a);font-weight:700;">—</span></span>
+          <span class="btc-k">mined</span><span class="btc-v" id="btc-blk-age-mob">—</span>
+          <span class="btc-k">txs · size</span><span class="btc-v" id="btc-blk-txsz-mob">—</span>
+          <span class="btc-k">fees sat/vB</span><span class="btc-v" id="btc-blk-fee-mob" style="color:var(--a2);">—</span>
         </div>
         <hr class="btc-divider">
         <div class="pay-row">
@@ -803,7 +807,13 @@ a.lnk-a:hover{color:var(--a);}
         <div class="btc-wrap" style="margin-bottom:5px;">
           <div style="color:#2a1800;font-size:9px;margin-bottom:3px;"><a class="lnk-a" href="https://coinos.io/kdnolan/receive" target="_blank">coinos.io/kdnolan/receive</a></div>
           <div class="btc-addr" style="font-size:12px;">⚡ kdnolan@coinos.io</div>
-          <div class="btc-sub">LUD-16 · NIP-57 · ~0 fees</div>
+          <div class="btc-sub">LUD-16 · NIP-57 zaps · ~0 fees</div>
+          <div class="btc-grid" style="margin-top:6px;">
+            <span class="btc-k">block</span><span class="btc-v"><a id="btc-block-mid" href="https://mempool.space/block/" id="btc-block-mid-link" target="_blank" style="color:var(--a);text-decoration:none;font-weight:700;">—</a></span>
+            <span class="btc-k">mined</span><span class="btc-v" id="btc-blk-age-mid" style="color:#8a9a7a;">—</span>
+            <span class="btc-k">txs · size</span><span class="btc-v" id="btc-blk-txsz-mid" style="color:#8a9a7a;">—</span>
+            <span class="btc-k">fees sat/vB</span><span class="btc-v" id="btc-blk-fee-mid" style="color:var(--a2);">—</span>
+          </div>
           <hr class="btc-divider">
           <div class="pay-row">
             <a class="zbtn" href="https://coinos.io/kdnolan/receive" target="_blank">⚡ coinos</a>
@@ -993,6 +1003,7 @@ a.lnk-a:hover{color:var(--a);}
     <span id="sb-r3" style="width:5px;height:5px;border-radius:50%;background:#1e2e1e;display:inline-block;"></span>wine
   </div>
   <div class="ss" style="color:#1a2e1a;font-size:10px;">⚡ kdnolan@coinos.io</div>
+  <div class="ss" style="font-size:10px;gap:5px;color:#1a2a10;">₿ <span id="sb-block" style="color:var(--a2);font-weight:700;">—</span> · <span id="sb-blk-tx" style="color:#2a4020;">—</span> tx · <span id="sb-blk-age" style="color:#2a4020;">—</span> · <span id="sb-blk-fee" style="color:var(--a2);">—</span> sat/vB</div>
   <div class="ss"><a class="lnk-a" href="https://consensus21.school" target="_blank" style="font-size:10px;color:#1e4020;border-color:#0a200a;">consensus21.school</a></div>
   <div class="ss ss-r"></div>
   <div class="ss ss-clk" id="clock">--:--:--</div>
@@ -1012,6 +1023,63 @@ function tick(){
   if(el) el.textContent = new Date().toISOString().slice(0,19).replace('T',' ')+' UTC';
 }
 tick(); setInterval(tick, 1000);
+
+/* BITCOIN BLOCK INFO */
+function blkAge(ts){
+  const s = Math.floor(Date.now()/1000 - ts);
+  if(s < 60)  return s+'s ago';
+  if(s < 3600) return Math.floor(s/60)+'m ago';
+  return Math.floor(s/3600)+'h '+Math.floor((s%3600)/60)+'m ago';
+}
+function setBlk(ids, val){ ids.forEach(id=>{ const e=document.getElementById(id); if(e) e.textContent=val; }); }
+
+async function fetchBlockInfo(){
+  try {
+    // 1. tip height + hash in parallel with fee rates
+    const [hashRes, feeRes] = await Promise.all([
+      fetch('https://mempool.space/api/blocks/tip/hash'),
+      fetch('https://mempool.space/api/v1/fees/recommended')
+    ]);
+    if(!hashRes.ok || !feeRes.ok) return;
+    const hash  = (await hashRes.text()).trim();
+    const fees  = await feeRes.json();
+
+    // 2. block details
+    const blkRes = await fetch('https://mempool.space/api/block/'+hash);
+    if(!blkRes.ok) return;
+    const b = await blkRes.json();
+
+    const height  = b.height.toLocaleString();
+    const age     = blkAge(b.timestamp);
+    const txCount = b.tx_count.toLocaleString();
+    const sizeMB  = (b.size/1e6).toFixed(2)+' MB';
+    const txSz    = txCount+' · '+sizeMB;
+    const feeStr  = fees.economyFee+'|'+fees.halfHourFee+'|'+fees.fastestFee;
+    const hashShort = hash.slice(0,8)+'…'+hash.slice(-6);
+
+    // status bar
+    setBlk(['sb-block'], height);
+    setBlk(['sb-blk-tx'], txCount);
+    setBlk(['sb-blk-age'], age);
+    setBlk(['sb-blk-fee'], fees.halfHourFee);
+
+    // desktop mid pane
+    const midLink = document.getElementById('btc-block-mid');
+    if(midLink){ midLink.textContent=height; midLink.href='https://mempool.space/block/'+hash; }
+    setBlk(['btc-blk-age-mid'], age);
+    setBlk(['btc-blk-txsz-mid'], txSz);
+    setBlk(['btc-blk-fee-mid'], feeStr);
+
+    // mobile
+    setBlk(['btc-block-mob'], height);
+    setBlk(['btc-blk-age-mob'], age);
+    setBlk(['btc-blk-txsz-mob'], txSz);
+    setBlk(['btc-blk-fee-mob'], feeStr);
+
+  } catch(_){}
+}
+fetchBlockInfo();
+setInterval(fetchBlockInfo, 60000);
 
 /* NOTES */
 const seen = new Set(), notes = [];
