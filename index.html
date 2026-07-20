@@ -140,6 +140,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .md pre code{border:none;padding:0;color:var(--g2);}
 .md img{max-width:100%;border:1px solid var(--dim3);margin:6px 0;display:block;}
 .md hr{border:none;border-top:1px dashed var(--dim3);margin:16px 0;}
+.reader-frame{width:100%;height:74vh;min-height:420px;border:1px solid var(--dim2);background:#0a0d0a;display:block;}
 
 footer{margin-top:44px;border-top:1px solid var(--dim3);padding-top:12px;font-size:10px;color:#1e3e1e;display:flex;gap:14px;flex-wrap:wrap;}
 footer a{color:#2a5a2a;text-decoration:none;}
@@ -227,7 +228,7 @@ footer a:hover{color:var(--g2);}
     <div class="reader" id="reader">
       <div class="pr" style="margin-top:0;">
         <span class="pu">kdnolan</span><span class="pa">@</span><span class="ph">github</span><span class="pa">:</span><span class="pp">~/kdnolan.github.io</span><span class="ps">$</span>
-        <span class="cmd">cat <span class="ca" id="reader-fname">articles/…</span></span>
+        <span class="cmd"><span id="reader-verb">cat</span> <span class="ca" id="reader-fname">articles/…</span></span>
       </div>
       <div class="reader-box">
         <button class="reader-close" onclick="closeReader()">✕ close</button>
@@ -288,9 +289,11 @@ async function loadArticles(){
         title: clean(f.name),
         size: f.size,
         ext, isImage, isPdf,
+        isHtml: ext === 'html' || ext === 'htm',
         html_url: f.html_url,
         download_url: f.download_url,
-        thumbSrc: (isImage || isPdf) ? 'thumbs/' + thumbSlug(f.name) + '.jpg' : null,
+        siteUrl: 'articles/' + encodeURIComponent(f.name),   // served by GitHub Pages, correct MIME, same origin
+        thumbSrc: (isImage || isPdf || ext === 'html' || ext === 'htm') ? 'thumbs/' + thumbSlug(f.name) + '.jpg' : null,
         preview: null, img: null, raw: null
       };
     });
@@ -611,7 +614,8 @@ function drawDocThumb(cv, a){
 async function fetchPreviews(){
   for(const a of ARTICLES){
     if(a.isImage){ a.preview = '// press clipping \u00b7 ' + (a.size/1048576).toFixed(1) + 'mb \u2014 click to view'; updateCard(a); continue; }
-    if(a.isPdf){   a.preview = '// pdf \u00b7 ' + (a.size/1048576).toFixed(1) + 'mb \u2014 click to open';  updateCard(a); continue; }
+    if(a.isPdf){   a.preview = '// pdf \u00b7 ' + (a.size/1048576).toFixed(1) + 'mb \u2014 click to view';  updateCard(a); continue; }
+    if(a.isHtml){  a.preview = '// web page \u2014 click to view'; updateCard(a); continue; }
     if(a.ext !== 'md' && a.ext !== 'txt'){ a.preview = '// ' + a.ext + ' file \u2014 opens on github'; updateCard(a); continue; }
     try{
       const r = await fetch(a.download_url);
@@ -650,21 +654,35 @@ async function openArticle(name){
   const a = ARTICLES.find(x => x.name === name);
   if(!a) return;
   const reader = document.getElementById('reader');
-  const body = document.getElementById('reader-body');
+  const body   = document.getElementById('reader-body');
+  const fname  = document.getElementById('reader-fname');
+  const verb   = document.getElementById('reader-verb');
+
+  const show = () => { reader.classList.add('open'); fname.textContent = 'articles/' + a.name;
+                       reader.scrollIntoView({behavior:'smooth', block:'start'}); };
+
   if(a.isImage){
-    document.getElementById('reader-fname').textContent = 'articles/' + a.name;
-    reader.classList.add('open');
+    verb.textContent = 'open';
     body.innerHTML = '<img src="' + esc(a.download_url) + '" alt="' + esc(a.title) + '" style="max-width:100%;border:1px solid var(--dim2);display:block;background:#050705;">'
       + '<p style="font-size:10px;margin-top:9px;"><a href="' + esc(a.download_url) + '" target="_blank" rel="noopener">open full size \u2197</a></p>';
-    reader.scrollIntoView({behavior:'smooth', block:'start'});
-    return;
+    show(); return;
   }
-  if(a.isPdf){ window.open(a.download_url, '_blank'); return; }
+
+  if(a.isPdf || a.isHtml){
+    verb.textContent = 'open';
+    // same-origin GitHub Pages URL \u2192 native pdf viewer / rendered html, embeddable
+    body.innerHTML = '<iframe class="reader-frame" src="' + esc(a.siteUrl) + '" title="' + esc(a.title) + '"'
+      + (a.isHtml ? ' sandbox="allow-scripts allow-same-origin allow-popups"' : '') + '></iframe>'
+      + '<p style="font-size:10px;margin-top:9px;"><a href="' + esc(a.siteUrl) + '" target="_blank" rel="noopener">open in new tab \u2197</a>'
+      + ' \u00b7 <a href="' + esc(a.html_url) + '" target="_blank" rel="noopener">view on github \u2197</a></p>';
+    show(); return;
+  }
+
   if(a.ext !== 'md' && a.ext !== 'txt'){ window.open(a.html_url, '_blank'); return; }
-  document.getElementById('reader-fname').textContent = 'articles/' + a.name;
-  reader.classList.add('open');
+
+  verb.textContent = 'cat';
   body.innerHTML = '<div class="skel"></div><div class="skel" style="width:80%"></div><div class="skel" style="width:60%"></div>';
-  reader.scrollIntoView({behavior:'smooth', block:'start'});
+  show();
   try{
     if(!a.raw){ const r = await fetch(a.download_url); a.raw = await r.text(); }
     body.innerHTML = a.ext==='md' ? mdToHtml(a.raw) : '<pre><code>'+esc(a.raw)+'</code></pre>';
