@@ -247,6 +247,7 @@ footer a:hover{color:var(--g2);}
     <span>kman2140@nostr</span>
     <a href="https://github.com/kdnolan/kdnolan.github.io" target="_blank" rel="noopener">github</a>
     <a href="https://primal.net/kman2140" target="_blank" rel="noopener">primal</a>
+    <span style="margin-left:auto;color:#152a15;">build v7-blob+manifest</span>
   </footer>
 </div>
 
@@ -257,6 +258,9 @@ const GH_REPO = 'kdnolan.github.io';
 const RAW_BASE = `https://raw.githubusercontent.com/${GH_USER}/${GH_REPO}/master/`;
 const NPUB = 'npub1cyla8qgt9gv8y6ydv8s2prt89h8afc0sr2kaz64ryjmlpdrzxm4qwlh53q';
 const RECIPIENT = 'c13fd3810b2a1872688d61e0a08d672dcfd4e1f01aadd16aa324b7f0b46236ea';
+const BUILD = 'v7-blob+manifest';
+// baked-in article manifest — the wall works with zero API calls; the API only refreshes it
+const FALLBACK_FILES = [{"type":"file","name":"Australian Financial Review.png","size":663287,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Australian%20Financial%20Review.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Australian%20Financial%20Review.png"},{"type":"file","name":"Australian Teacher Magazine (2014).png","size":581145,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Australian%20Teacher%20Magazine%20%282014%29.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Australian%20Teacher%20Magazine%20%282014%29.png"},{"type":"file","name":"Australian Teacher Magazine (2017).png","size":507139,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Australian%20Teacher%20Magazine%20%282017%29.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Australian%20Teacher%20Magazine%20%282017%29.png"},{"type":"file","name":"Australian Teacher Magazine (2020).jpg","size":465127,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Australian%20Teacher%20Magazine%20%282020%29.jpg","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Australian%20Teacher%20Magazine%20%282020%29.jpg"},{"type":"file","name":"Australian school expands Knowledge Token incentive and reward program.png","size":730863,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Australian%20school%20expands%20Knowledge%20Token%20incentive%20and%20reward%20program.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Australian%20school%20expands%20Knowledge%20Token%20incentive%20and%20reward%20program.png"},{"type":"file","name":"CNAInsider.png","size":4638427,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/CNAInsider.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/CNAInsider.png"},{"type":"file","name":"COV_Article.pdf","size":374985,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/COV_Article.pdf","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/COV_Article.pdf"},{"type":"file","name":"Critereon.png","size":333274,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Critereon.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Critereon.png"},{"type":"file","name":"Education Today.PNG","size":578728,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Education%20Today.PNG","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Education%20Today.PNG"},{"type":"file","name":"Edutopia (2015).png","size":336818,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Edutopia%20%282015%29.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Edutopia%20%282015%29.png"},{"type":"file","name":"Edutopia (2019).png","size":560104,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Edutopia%20%282019%29.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Edutopia%20%282019%29.png"},{"type":"file","name":"Future_Schools_Expo.pdf","size":8897536,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Future_Schools_Expo.pdf","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Future_Schools_Expo.pdf"},{"type":"file","name":"Herald Sun.png","size":690870,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Herald%20Sun.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Herald%20Sun.png"},{"type":"file","name":"Holoportation.png","size":625810,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Holoportation.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Holoportation.png"},{"type":"file","name":"How this school is breeding the next generation of technology experts _ News & Insights _ Informa Australia.pdf","size":270651,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/How%20this%20school%20is%20breeding%20the%20next%20generation%20of%20technology%20experts%20_%20News%20%26%20Insights%20_%20Informa%20Australia.pdf","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/How%20this%20school%20is%20breeding%20the%20next%20generation%20of%20technology%20experts%20_%20News%20%26%20Insights%20_%20Informa%20Australia.pdf"},{"type":"file","name":"Immersive Education.png","size":430969,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Immersive%20Education.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Immersive%20Education.png"},{"type":"file","name":"Independent News for International Students RocketShoes article.png","size":555880,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Independent%20News%20for%20International%20Students%20RocketShoes%20article.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Independent%20News%20for%20International%20Students%20RocketShoes%20article.png"},{"type":"file","name":"Insight Creative.png","size":2166843,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Insight%20Creative.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Insight%20Creative.png"},{"type":"file","name":"Jacobin.jpg","size":1335924,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Jacobin.jpg","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Jacobin.jpg"},{"type":"file","name":"Luxenburg Journal.png","size":733221,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Luxenburg%20Journal.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Luxenburg%20Journal.png"},{"type":"file","name":"Micky.png","size":773509,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Micky.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Micky.png"},{"type":"file","name":"One School's Uncompromising Take on Student Choice.png","size":1370698,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/One%20School%27s%20Uncompromising%20Take%20on%20Student%20Choice.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/One%20School%27s%20Uncompromising%20Take%20on%20Student%20Choice.png"},{"type":"file","name":"Royal Society Victoria.png","size":561833,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Royal%20Society%20Victoria.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Royal%20Society%20Victoria.png"},{"type":"file","name":"SINews.png","size":1821264,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/SINews.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/SINews.png"},{"type":"file","name":"Social Venturs Australia.png","size":1066457,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Social%20Venturs%20Australia.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Social%20Venturs%20Australia.png"},{"type":"file","name":"Star Journal.png","size":462438,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Star%20Journal.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Star%20Journal.png"},{"type":"file","name":"Technology OzLeader.png","size":597978,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Technology%20OzLeader.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Technology%20OzLeader.png"},{"type":"file","name":"The Age (2014).png","size":860108,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/The%20Age%20%282014%29.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/The%20Age%20%282014%29.png"},{"type":"file","name":"The Age - 2017.png","size":871727,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/The%20Age%20-%202017.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/The%20Age%20-%202017.png"},{"type":"file","name":"The Australian.png","size":258669,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/The%20Australian.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/The%20Australian.png"},{"type":"file","name":"The Conversation.png","size":761051,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/The%20Conversation.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/The%20Conversation.png"},{"type":"file","name":"The Educator (2018).png","size":310169,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/The%20Educator%20%282018%29.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/The%20Educator%20%282018%29.png"},{"type":"file","name":"The Educator (2021).png","size":720199,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/The%20Educator%20%282021%29.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/The%20Educator%20%282021%29.png"},{"type":"file","name":"The Educator - 2019 hotlist.png","size":271058,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/The%20Educator%20-%202019%20hotlist.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/The%20Educator%20-%202019%20hotlist.png"},{"type":"file","name":"The Educator - 2020 hotlist.png","size":290054,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/The%20Educator%20-%202020%20hotlist.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/The%20Educator%20-%202020%20hotlist.png"},{"type":"file","name":"The Educator - School's 'open-source teaching' sees impressive results.png","size":946356,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/The%20Educator%20-%20School%27s%20%27open-source%20teaching%27%20sees%20impressive%20results.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/The%20Educator%20-%20School%27s%20%27open-source%20teaching%27%20sees%20impressive%20results.png"},{"type":"file","name":"Wooranna Park where school is like Disneyland.png","size":683215,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/Wooranna%20Park%20where%20school%20is%20like%20Disneyland.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/Wooranna%20Park%20where%20school%20is%20like%20Disneyland.png"},{"type":"file","name":"bitcoinnews - Aussie School's Cryptocurrency Programs Attract International Attention.png","size":477670,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/bitcoinnews%20-%20Aussie%20School%27s%20Cryptocurrency%20Programs%20Attract%20International%20Attention.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/bitcoinnews%20-%20Aussie%20School%27s%20Cryptocurrency%20Programs%20Attract%20International%20Attention.png"},{"type":"file","name":"bitcoinnews - Australian Bitcoin Adoption Increases Following Regulatory Amendments.png","size":1334409,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/bitcoinnews%20-%20Australian%20Bitcoin%20Adoption%20Increases%20Following%20Regulatory%20Amendments.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/bitcoinnews%20-%20Australian%20Bitcoin%20Adoption%20Increases%20Following%20Regulatory%20Amendments.png"},{"type":"file","name":"bitcoinnews - Australian Primary School Students Explore Bitcoin.png","size":1550360,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/bitcoinnews%20-%20Australian%20Primary%20School%20Students%20Explore%20Bitcoin.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/bitcoinnews%20-%20Australian%20Primary%20School%20Students%20Explore%20Bitcoin.png"},{"type":"file","name":"boneo-year2-thinking-routine-article.pdf","size":392229,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/boneo-year2-thinking-routine-article.pdf","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/boneo-year2-thinking-routine-article.pdf"},{"type":"file","name":"studyinternational.com-news-rocketshoes-empowering-studies-through-equity-of-assets.png","size":780818,"download_url":"https://raw.githubusercontent.com/kdnolan/kdnolan.github.io/master/articles/studyinternational.com-news-rocketshoes-empowering-studies-through-equity-of-assets.png","html_url":"https://github.com/kdnolan/kdnolan.github.io/blob/master/articles/studyinternational.com-news-rocketshoes-empowering-studies-through-equity-of-assets.png"}];
 
 function copyNpub(btn){
   navigator.clipboard.writeText(NPUB).then(()=>{
@@ -275,13 +279,14 @@ const IMG_EXTS = ['png','jpg','jpeg','gif','webp'];
 const thumbSlug = n => n.replace(/\.[a-z0-9]+$/i,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
 
 async function loadArticles(){
-  const wall = document.getElementById('wall');
+  console.log('kman2140 wall · build ' + BUILD);
+  let files = null;
   try{
     const r = await fetch(`https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/articles`);
-    if(!r.ok) throw new Error('api ' + r.status);
-    const files = await r.json();
-    if(!Array.isArray(files)) throw new Error('bad response');
-    ARTICLES = files.filter(f => f.type === 'file').map(f => {
+    if(r.ok){ const j = await r.json(); if(Array.isArray(j) && j.length) files = j; }
+  }catch(_){}
+  if(!files) files = FALLBACK_FILES;   // API down / rate-limited / offline — use the baked list
+  ARTICLES = files.filter(f => f.type === 'file').map(f => {
       const ext = (f.name.match(/\.([a-z0-9]+)$/i)||[,'txt'])[1].toLowerCase();
       const isImage = IMG_EXTS.includes(ext), isPdf = ext === 'pdf';
       return {
@@ -292,19 +297,13 @@ async function loadArticles(){
         isHtml: ext === 'html' || ext === 'htm',
         html_url: f.html_url,
         download_url: f.download_url,
-        siteUrl: 'articles/' + encodeURIComponent(f.name),   // served by GitHub Pages, correct MIME, same origin
+        siteUrl: 'articles/' + encodeURIComponent(f.name),
         thumbSrc: (isImage || isPdf || ext === 'html' || ext === 'htm') ? 'thumbs/' + thumbSlug(f.name) + '.jpg' : null,
         preview: null, img: null, raw: null
       };
-    });
-    renderWall();
-    fetchPreviews();
-  }catch(e){
-    wall.innerHTML = `<div class="err" style="grid-column:1/-1;padding:11px;">
-      ⚠ couldn't reach the GitHub API (${esc(String(e.message||e))}) —
-      <a class="lnk" href="https://github.com/${GH_USER}/${GH_REPO}/tree/master/articles" target="_blank" rel="noopener">browse articles on github ↗</a>
-    </div>`;
-  }
+  });
+  renderWall();
+  fetchPreviews();
 }
 
 function setSort(m){
@@ -372,7 +371,6 @@ function paintThumb(a){
       a._imgLoading = true;
       const tryLoad = (srcUrl, fallback) => {
         const im = new Image();
-        im.crossOrigin = 'anonymous';
         im.onload  = ()=>{ a._imgEl = im; repaintThumb(a); };
         im.onerror = ()=>{ if(fallback) tryLoad(fallback, null); else repaintThumb(a); };
         im.src = srcUrl;
@@ -388,7 +386,6 @@ function paintThumb(a){
     if(a.img && !a._imgEl && !a._imgLoading){
       a._imgLoading = true;
       const im = new Image();
-      im.crossOrigin = 'anonymous';
       im.onload  = ()=>{ a._imgEl = im; repaintThumb(a); };
       im.onerror = ()=>{ a.img = null; };
       im.src = a.img;
@@ -670,12 +667,38 @@ async function openArticle(name){
 
   if(a.isPdf || a.isHtml){
     verb.textContent = 'open';
-    // same-origin GitHub Pages URL \u2192 native pdf viewer / rendered html, embeddable
-    body.innerHTML = '<iframe class="reader-frame" src="' + esc(a.siteUrl) + '" title="' + esc(a.title) + '"'
+    body.innerHTML = '<div class="skel"></div><div class="skel" style="width:70%"></div>'
+      + '<div style="color:var(--dim);font-size:10px;margin-top:8px;">// fetching ' + esc(a.name)
+      + ' (' + (a.size/1048576).toFixed(1) + 'mb)\u2026</div>';
+    show();
+    let viewSrc = a._viewUrl || null;
+    if(!viewSrc){
+      // 1st choice: same-origin GitHub Pages path (instant, streams)
+      try{
+        const h = await fetch(a.siteUrl, {method:'HEAD'});
+        const ct = (h.headers.get('content-type')||'').toLowerCase();
+        if(h.ok && (a.isPdf ? ct.includes('pdf') : ct.includes('html'))) viewSrc = a.siteUrl;
+      }catch(_){}
+    }
+    if(!viewSrc){
+      // fallback: pull from raw (sends CORS *) and view as a typed blob — works anywhere
+      try{
+        const r = await fetch(a.download_url);
+        if(!r.ok) throw new Error('fetch ' + r.status);
+        const blob = new Blob([await r.blob()], {type: a.isPdf ? 'application/pdf' : 'text/html'});
+        viewSrc = URL.createObjectURL(blob);
+      }catch(e){
+        body.innerHTML = '<div class="err">\u26a0 couldn\u2019t load ' + esc(a.name)
+          + ' \u2014 <a class="lnk" href="' + esc(a.html_url) + '" target="_blank" rel="noopener">view on github \u2197</a></div>';
+        return;
+      }
+    }
+    a._viewUrl = viewSrc;
+    body.innerHTML = '<iframe class="reader-frame" src="' + esc(viewSrc) + '" title="' + esc(a.title) + '"'
       + (a.isHtml ? ' sandbox="allow-scripts allow-same-origin allow-popups"' : '') + '></iframe>'
-      + '<p style="font-size:10px;margin-top:9px;"><a href="' + esc(a.siteUrl) + '" target="_blank" rel="noopener">open in new tab \u2197</a>'
+      + '<p style="font-size:10px;margin-top:9px;"><a href="' + esc(viewSrc) + '" target="_blank" rel="noopener">open in new tab \u2197</a>'
       + ' \u00b7 <a href="' + esc(a.html_url) + '" target="_blank" rel="noopener">view on github \u2197</a></p>';
-    show(); return;
+    return;
   }
 
   if(a.ext !== 'md' && a.ext !== 'txt'){ window.open(a.html_url, '_blank'); return; }
